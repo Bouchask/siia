@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-JWT-Extended
+Flask-CORS
+psycopg2-binary
+python-dotenv
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
