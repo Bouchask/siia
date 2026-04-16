@@ -6,6 +6,8 @@ import HomePage from './pages/Home/Home';
 import LoginPage from './pages/Login/Login';
 import Announcements from './pages/Announcements/Announcements';
 import AnnouncementDetail from './pages/Announcements/AnnouncementDetail';
+import Events from './pages/Events/Events';
+import EventDetail from './pages/Events/EventDetail';
 import Timetables from './pages/Timetables/Timetables';
 import CourseMaterials from './pages/CourseMaterials/CourseMaterials';
 import AdminLayout from './components/AdminLayout';
@@ -13,6 +15,7 @@ import DashboardHome from './pages/Admin/DashboardHome';
 import AnnouncementManager from './pages/Admin/AnnouncementManager';
 import UserManager from './pages/Admin/UserManager';
 import EventManager from './pages/Admin/EventManager';
+import CourseManager from './pages/Admin/CourseManager';
 import TimetableManager from './pages/Admin/TimetableManager';
 import SemesterManager from './pages/Admin/SemesterManager';
 import { useAuth } from './context/AuthContext';
@@ -36,6 +39,7 @@ const Navbar = () => {
         <div className="nav-links">
           <Link to="/" className="nav-item"><Home size={16}/> Home</Link>
           <Link to="/announcements" className="nav-item"><Bell size={16}/> News</Link>
+          <Link to="/events" className="nav-item"><Calendar size={16}/> Events</Link>
           <Link to="/timetables" className="nav-item"><Calendar size={16}/> Timetables</Link>
           <Link to="/courses" className="nav-item"><BookOpen size={16}/> Courses</Link>
           {user?.role === 'admin' || user?.role === 'professor' ? (
@@ -59,6 +63,8 @@ function App() {
           <Route path="/login" element={<><Navbar /><LoginPage /></>} />
           <Route path="/news/:id" element={<><Navbar /><AnnouncementDetail /></>} />
           <Route path="/announcements" element={<><Navbar /><Announcements /></>} />
+          <Route path="/events" element={<><Navbar /><Events /></>} />
+          <Route path="/events/:id" element={<><Navbar /><EventDetail /></>} />
           <Route path="/timetables" element={<><Navbar /><Timetables /></>} />
           <Route path="/courses" element={<><Navbar /><CourseMaterials /></>} />
 
@@ -72,6 +78,7 @@ function App() {
             <Route path="users" element={<UserManager />} />
             <Route path="announcements" element={<AnnouncementManager />} />
             <Route path="events" element={<EventManager />} />
+            <Route path="courses" element={<CourseManager />} />
             <Route path="timetables" element={<TimetableManager />} />
             <Route path="academic" element={<SemesterManager />} />
           </Route>

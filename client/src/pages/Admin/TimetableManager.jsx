@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, Save, FileText, Link as LinkIcon, 
   Edit3, Eye, CheckCircle, AlertCircle, ChevronRight, 
-  Monitor, Info
+  Monitor, Info, Plus, Trash2, X, Maximize2, ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -12,186 +12,236 @@ const TimetableManager = () => {
   const { token } = useAuth();
   const [timetables, setTimetables] = useState([]);
   const [settings, setSettings] = useState({});
+  const [semesters, setSemesters] = useState([]);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Edit State
-  const [editData, setEditData] = useState({ name: '', drive_id: '' });
+  // States
+  const [editData, setEditData] = useState({ name: '', drive_id: '', key: '' });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newTT, setNewTT] = useState({ key_suffix: '', drive_id: '' });
   const [status, setStatus] = useState({ type: '', msg: '' });
 
-  useEffect(() => {
-    init();
-  }, []);
+  useEffect(() => { init(); }, []);
 
   const init = async () => {
     setLoading(true);
     try {
-      const [ttRes, setRes] = await Promise.all([
+      const [ttRes, setRes, semRes] = await Promise.all([
         axios.get('http://localhost:5000/api/timetables/'),
-        axios.get('http://localhost:5000/api/settings/', { headers: { Authorization: `Bearer ${token}` } })
+        axios.get('http://localhost:5000/api/settings/', { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get('http://localhost:5000/api/academic/semesters')
       ]);
       setTimetables(ttRes.data);
       setSettings(setRes.data);
-      
-      if (ttRes.data.length > 0) {
-        handleSelect(ttRes.data[0], setRes.data);
-      }
+      setSemesters(semRes.data);
+      if (ttRes.data.length > 0) handleSelect(ttRes.data[0], setRes.data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
 
   const handleSelect = (file, currentSettings) => {
     setSelected(file);
-    const settingKey = file.name.toLowerCase().includes('s6') ? 'timetable_s6_id' : 'timetable_s8_id';
-    setEditData({
-      name: file.name,
-      drive_id: currentSettings[settingKey] || file.id
-    });
+    const settingKey = Object.keys(currentSettings).find(k => currentSettings[k] === file.id && k.startsWith('timetable_')) || '';
+    setEditData({ name: file.name, drive_id: file.id, key: settingKey });
+  };
+
+  const refreshData = async () => {
+    const ttRes = await axios.get('http://localhost:5000/api/timetables/');
+    const setRes = await axios.get('http://localhost:5000/api/settings/', { headers: { Authorization: `Bearer ${token}` } });
+    setTimetables(ttRes.data);
+    setSettings(setRes.data);
+    setTimeout(() => setStatus({ type: '', msg: '' }), 3000);
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    setStatus({ type: 'info', msg: 'Updating configuration...' });
-    
-    const settingKey = selected.name.toLowerCase().includes('s6') ? 'timetable_s6_id' : 'timetable_s8_id';
-    
+    setStatus({ type: 'info', msg: 'Syncing Drive changes...' });
     try {
-      // 1. Update the Setting (The ID/Link)
-      await axios.post('http://localhost:5000/api/settings/', { [settingKey]: editData.drive_id }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      // 2. Rename the file on Drive
-      await axios.post(`http://localhost:5000/api/timetables/rename/${selected.id}`, { name: editData.name }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      setStatus({ type: 'success', msg: 'Timetable updated! Refreshing preview...' });
-      
-      // Refresh Data
-      const ttRes = await axios.get('http://localhost:5000/api/timetables/');
-      const setRes = await axios.get('http://localhost:5000/api/settings/', { headers: { Authorization: `Bearer ${token}` } });
-      
-      setTimetables(ttRes.data);
-      setSettings(setRes.data);
-      
-      // Update local selection to reflect changes
-      const updatedFile = ttRes.data.find(f => f.id === editData.drive_id) || ttRes.data.find(f => f.name === editData.name);
-      if (updatedFile) setSelected(updatedFile);
-
-      setTimeout(() => setStatus({ type: '', msg: '' }), 3000);
-    } catch (err) {
-      setStatus({ type: 'error', msg: 'Update failed. Check ID permissions.' });
-    }
+      if (editData.key) {
+        await axios.post('http://localhost:5000/api/settings/', { [editData.key]: editData.drive_id }, { headers: { Authorization: `Bearer ${token}` } });
+      }
+      await axios.post(`http://localhost:5000/api/timetables/rename/${selected.id}`, { name: editData.name }, { headers: { Authorization: `Bearer ${token}` } });
+      setStatus({ type: 'success', msg: 'Live timetable updated!' });
+      refreshData();
+    } catch (err) { setStatus({ type: 'error', msg: 'Sync failed.' }); }
   };
 
-  if (loading) return <div style={{ padding: '40px' }}>Loading Timetables...</div>;
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    const fullKey = `timetable_${newTT.key_suffix.toLowerCase()}_id`;
+    try {
+      await axios.post('http://localhost:5000/api/settings/', { [fullKey]: newTT.drive_id }, { headers: { Authorization: `Bearer ${token}` } });
+      setShowAddModal(false);
+      setNewTT({ key_suffix: '', drive_id: '' });
+      refreshData();
+    } catch (err) { alert("Association failed."); }
+  };
+
+  if (loading) return <div className="studio-init">Preparing Schedule Workspace...</div>;
 
   return (
-    <div>
-      <header style={{ marginBottom: '40px' }}>
-        <h1 style={{ color: 'var(--siia-navy)', margin: 0, fontSize: '2rem' }}>Timetable Center</h1>
-        <p style={{ color: '#64748b', marginTop: '8px' }}>Select a schedule to modify its name, source link, or view its content.</p>
+    <div className="tt-studio">
+      <header className="tt-header">
+        <div>
+          <h1>Schedule Workspace</h1>
+          <p>Link and organize interactive PDF timetables for the student body.</p>
+        </div>
+        <button onClick={() => setShowAddModal(true)} className="tt-add-btn">
+          <Plus size={18} /> New Schedule Association
+        </button>
       </header>
 
-      {/* 1. SELECTION CARDS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-        {timetables.map((file) => (
-          <div 
-            key={file.id} 
-            onClick={() => handleSelect(file, settings)}
-            style={{ 
-              padding: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '20px',
-              border: selected?.id === file.id ? '2px solid var(--siia-blue)' : '1px solid var(--siia-border)',
-              background: selected?.id === file.id ? '#eff6ff' : '#fff'
-            }}
-            className="card"
-          >
-            <div style={{ padding: '12px', background: '#fff', borderRadius: '10px', color: 'var(--siia-blue)', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}>
-              <Monitor size={24} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--siia-navy)' }}>{file.name}</h3>
-              <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8', fontWeight: 'bold' }}>ACTIVE VIEW</p>
-            </div>
-            {selected?.id === file.id && <CheckCircle size={20} color="var(--siia-blue)" />}
+      <div className="tt-layout">
+        {/* Sidebar: Available Slots */}
+        <aside className="tt-slots">
+          <div className="label">ACTIVE SCHEDULES</div>
+          <div className="slots-list">
+            {timetables.map((file) => {
+              const key = Object.keys(settings).find(k => settings[k] === file.id);
+              return (
+                <div 
+                  key={file.id} 
+                  onClick={() => handleSelect(file, settings)}
+                  className={`slot-item ${selected?.id === file.id ? 'active' : ''}`}
+                >
+                  <div className="slot-icon"><Calendar size={18} /></div>
+                  <div className="slot-info">
+                    <span className="name">{file.name}</span>
+                    <span className="tag">{key?.replace('timetable_', '').replace('_id', '').toUpperCase() || 'EXTERNAL'}</span>
+                  </div>
+                  {selected?.id === file.id && <ChevronRight size={14} />}
+                </div>
+              );
+            })}
           </div>
-        ))}
-      </div>
+        </aside>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '30px', alignItems: 'start' }}>
-        
-        {/* 2. MANAGEMENT CONSOLE */}
-        <div className="card" style={{ padding: '35px' }}>
-          <h3 style={{ margin: '0 0 25px', display: 'flex', alignItems: 'center', gap: '10px' }}><Edit3 size={20} color="var(--siia-blue)"/> Modify Schedule</h3>
-          
-          {status.msg && (
-            <div style={{ padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '13px', background: status.type === 'success' ? '#ecfdf5' : '#fef2f2', color: status.type === 'success' ? '#059669' : '#dc2626', fontWeight: 'bold' }}>
-              {status.msg}
-            </div>
-          )}
-
-          <form onSubmit={handleUpdate}>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>DISPLAY NAME ON DRIVE</label>
-              <input 
-                type="text" required value={editData.name}
-                onChange={(e) => setEditData({...editData, name: e.target.value})}
-                style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none' }}
-              />
+        {/* Workspace: PDF Preview & Edit */}
+        <main className="tt-canvas">
+          <div className="canvas-top">
+            <div className="config-panel">
+              <div className="panel-head">
+                <Edit3 size={16} /> <span>Dynamic Configuration</span>
+              </div>
+              <form onSubmit={handleUpdate} className="config-form">
+                <div className="field">
+                  <label>Drive Name</label>
+                  <input value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} />
+                </div>
+                <div className="field">
+                  <label>File ID</label>
+                  <input value={editData.drive_id} onChange={e => setEditData({...editData, drive_id: e.target.value})} />
+                </div>
+                <button type="submit" className="sync-btn"><Save size={14}/> Sync</button>
+              </form>
+              {status.msg && <div className={`sync-status ${status.type}`}>{status.msg}</div>}
             </div>
 
-            <div style={{ marginBottom: '30px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>GOOGLE DRIVE FILE ID (LINK)</label>
-              <div style={{ position: 'relative' }}>
-                <LinkIcon size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: '#94a3b8' }} />
-                <input 
-                  type="text" required value={editData.drive_id}
-                  onChange={(e) => setEditData({...editData, drive_id: e.target.value})}
-                  placeholder="Paste new file ID..."
-                  style={{ width: '100%', padding: '12px 12px 12px 40px', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none' }}
-                />
+            <div className="pdf-workspace">
+              <div className="workspace-header">
+                <div className="w-title"><Eye size={16}/> Content Verification</div>
+                <div className="w-actions">
+                  <button onClick={() => window.open(selected?.webViewLink, '_blank')}><ExternalLink size={14}/></button>
+                </div>
+              </div>
+              <div className="iframe-container">
+                {selected && (
+                  <iframe 
+                    key={selected.id}
+                    src={`http://localhost:5000/api/timetables/proxy/${selected.id}`} 
+                    width="100%" height="100%"
+                  ></iframe>
+                )}
               </div>
             </div>
-
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', gap: '10px' }}>
-              <Save size={18} /> Apply Changes
-            </button>
-          </form>
-
-          <div style={{ marginTop: '30px', padding: '20px', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #e2e8f0' }}>
-            <div style={{ display: 'flex', gap: '10px', color: 'var(--siia-navy)', fontWeight: 'bold', fontSize: '13px', marginBottom: '8px' }}>
-              <Info size={16} color="var(--siia-blue)"/> Help
-            </div>
-            <p style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5', margin: 0 }}>
-              Updating the File ID will immediately change the schedule shown to students. Ensure the new file is shared with the Service Account.
-            </p>
           </div>
-        </div>
-
-        {/* 3. LARGE PREVIEW BOX */}
-        <div className="card" style={{ padding: '20px', height: '700px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '0 10px 15px', borderBottom: '1px solid #f1f5f9', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--siia-navy)', fontWeight: 'bold' }}>
-              <Eye size={18} color="var(--siia-blue)"/> Live Content Preview
-            </div>
-            <span style={{ fontSize: '11px', background: '#f1f5f9', padding: '4px 10px', borderRadius: '50px', color: '#94a3b8', fontWeight: 'bold' }}>
-              SOURCE: DRIVE PROXY
-            </span>
-          </div>
-          
-          <div style={{ flex: 1, background: '#f8fafc', borderRadius: '8px', overflow: 'hidden' }}>
-            {selected && (
-              <iframe 
-                key={selected.id}
-                src={`http://localhost:5000/api/timetables/proxy/${selected.id}`} 
-                width="100%" height="100%" style={{ border: 'none' }}
-              ></iframe>
-            )}
-          </div>
-        </div>
-
+        </main>
       </div>
+
+      {/* Add Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddModal(false)} className="drawer-overlay" />
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="tt-modal">
+              <h2>Add Timetable Slot</h2>
+              <p>Associate a semester slot with a Google Drive file ID.</p>
+              <form onSubmit={handleAdd} className="modal-form">
+                <div className="m-field">
+                  <label>Choose Academic Period</label>
+                  <select value={newTT.key_suffix} onChange={e => setNewTT({...newTT, key_suffix: e.target.value})} required>
+                    <option value="">Select Period...</option>
+                    {semesters.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
+                <div className="m-field">
+                  <label>Google Drive File ID</label>
+                  <input placeholder="Paste ID here..." value={newTT.drive_id} onChange={e => setNewTT({...newTT, drive_id: e.target.value})} required />
+                </div>
+                <button type="submit" className="m-submit">Establish Connection</button>
+              </form>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <style>{`
+        .tt-studio { display: flex; flex-direction: column; gap: 40px; height: 100%; }
+        
+        .tt-header { display: flex; justify-content: space-between; align-items: center; }
+        .tt-header h1 { font-size: 2.2rem; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -1.5px; }
+        .tt-header p { color: #64748b; font-weight: 500; }
+        
+        .tt-add-btn { background: #2563eb; color: #fff; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .tt-add-btn:hover { background: #1d4ed8; transform: translateY(-2px); }
+
+        .tt-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; flex: 1; min-height: 0; }
+        
+        .tt-slots { background: #fff; border-radius: 24px; padding: 24px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+        .label { font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; }
+        .slots-list { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
+        .slot-item { padding: 14px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; border: 1px solid transparent; transition: 0.2s; }
+        .slot-item:hover { background: #f8fafc; }
+        .slot-item.active { background: #eff6ff; border-color: #dbeafe; }
+        .slot-icon { width: 36px; height: 36px; background: #f1f5f9; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #64748b; }
+        .active .slot-icon { background: #fff; color: #2563eb; }
+        .slot-info .name { display: block; font-weight: 700; font-size: 13px; color: #1e293b; }
+        .slot-info .tag { font-size: 9px; font-weight: 900; color: #2563eb; }
+
+        .tt-canvas { display: flex; flex-direction: column; gap: 20px; }
+        .canvas-top { display: grid; grid-template-columns: 1fr; gap: 20px; height: 100%; }
+        
+        .config-panel { background: #fff; border-radius: 20px; padding: 20px; border: 1px solid #e2e8f0; }
+        .panel-head { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; }
+        .config-form { display: flex; gap: 20px; align-items: flex-end; }
+        .field { flex: 1; }
+        .field label { display: block; font-size: 10px; font-weight: 800; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        .field input { width: 100%; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 600; outline: none; }
+        .sync-btn { background: #0f172a; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        
+        .sync-status { margin-top: 10px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 4px; display: inline-block; }
+        .sync-status.success { background: #ecfdf5; color: #059669; }
+        .sync-status.info { background: #eff6ff; color: #2563eb; }
+
+        .pdf-workspace { background: #fff; border-radius: 24px; border: 1px solid #e2e8f0; flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 600px; }
+        .workspace-header { padding: 15px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .w-title { font-size: 12px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+        .w-actions button { background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px; border-radius: 6px; color: #64748b; cursor: pointer; }
+        .iframe-container { flex: 1; background: #f1f5f9; }
+        .iframe-container iframe { border: none; }
+
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; }
+        .tt-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; background: #fff; border-radius: 24px; padding: 40px; z-index: 1001; box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
+        .tt-modal h2 { margin: 0; font-weight: 900; color: #0f172a; }
+        .tt-modal p { color: #64748b; font-size: 14px; margin: 10px 0 30px; }
+        .m-field { margin-bottom: 20px; }
+        .m-field label { display: block; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
+        .m-field input, .m-field select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; outline: none; font-weight: 600; }
+        .m-submit { width: 100%; padding: 14px; background: #2563eb; color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 10px; }
+
+        .studio-init { height: 100vh; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #2563eb; letter-spacing: 2px; }
+      `}</style>
     </div>
   );
 };

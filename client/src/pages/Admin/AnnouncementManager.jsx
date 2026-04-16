@@ -2,11 +2,39 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Plus, Trash2, Edit3, Image as ImageIcon, 
-  X, Save, Settings, ChevronRight, Eye
+  Plus, Trash2, Edit3, X, Save, Clock, 
+  Search, FileText, Image as ImageIcon, ExternalLink,
+  ChevronRight, LayoutDashboard, Settings
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import WordEditor from '../../components/Editor/WordEditor';
+import CustomBlockEditor from '../../components/CustomBlockEditor';
+import { convertDriveLink } from '../../components/CustomBlockEditor/utils';
+import DOMPurify from 'dompurify';
+
+/**
+ * PRODUCTION-GRADE NEWS RENDERER
+ * Shared logic for the Studio Preview.
+ */
+const renderPreviewHtml = (blocks) => {
+  if (!Array.isArray(blocks)) return "";
+  return blocks.map(block => {
+    switch(block.type) {
+      case 'text':
+        return `<div style="margin-bottom: 24px; font-size: 17px; line-height: 1.8; color: #334155;">${block.content || ''}</div>`;
+      case 'image':
+        return `<div style="margin: 32px 0; text-align: center;">
+                  <img src="${convertDriveLink(block.src)}" style="max-width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
+                </div>`;
+      case 'row':
+        const cols = (block.children || []).map(child => `<div style="flex: 1; min-width: 250px;">${renderPreviewHtml([child])}</div>`).join('');
+        return `<div style="display: flex; gap: 32px; flex-wrap: wrap; margin: 32px 0;">${cols}</div>`;
+      case 'table':
+        const rows = (block.data || []).map(row => `<tr>${row.map(cell => `<td style="border: 1px solid #e2e8f0; padding: 12px; font-size: 14px;">${cell}</td>`).join('')}</tr>`).join('');
+        return `<div style="overflow-x: auto; margin: 24px 0;"><table style="width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0;">${rows}</table></div>`;
+      default: return "";
+    }
+  }).join('');
+};
 
 const AnnouncementManager = () => {
   const { token } = useAuth();
@@ -14,268 +42,182 @@ const AnnouncementManager = () => {
   const [selected, setSelected] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [content, setContent] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  
   const [title, setTitle] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [blocks, setBlocks] = useState([]);
+  const [heroImage, setHeroImage] = useState('');
 
-  useEffect(() => {
-    fetchAnnouncements();
-  }, []);
+  useEffect(() => { fetchAnnouncements(); }, []);
 
   const fetchAnnouncements = async () => {
     try {
       const res = await axios.get('http://localhost:5000/api/announcements/');
       setAnnouncements(res.data);
-      if (res.data.length > 0 && !selected) handleSelect(res.data[0]);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  };
-
-  const getDirectDriveLink = (url) => {
-    if (!url) return "";
-    // Extract ID from various Drive URL formats (/d/ID or id=ID)
-    const match = url.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{25,})/);
-    if (match && match[1]) {
-      return `https://lh3.googleusercontent.com/d/${match[1]}`;
-    }
-    return url;
+      if (res.data.length > 0) handleSelect(res.data[0]);
+    } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
   const handleSelect = (a) => {
     setSelected(a);
     setIsEditing(false);
-    let finalContent = a.content || '';
-    
-    // Check if it's JSON content (Legacy or TipTap)
-    if (finalContent.trim().startsWith('{') || finalContent.trim().startsWith('[')) {
-      try {
-        const parsed = JSON.parse(finalContent);
-        
-        // Handle TipTap JSON (root is usually { type: 'doc', content: [...] })
-        if (parsed.type === 'doc' && Array.isArray(parsed.content)) {
-          finalContent = parsed.content.map(node => {
-            if (node.type === 'paragraph') {
-              const text = node.content?.map(c => c.text).join('') || '';
-              return `<p>${text}</p>`;
-            }
-            if (node.type === 'heading') {
-              const text = node.content?.map(c => c.text).join('') || '';
-              const level = node.attrs?.level || 1;
-              return `<h${level}>${text}</h${level}>`;
-            }
-            if (node.type === 'image') {
-              const src = node.attrs?.src || '';
-              const width = node.attrs?.width || '100%';
-              return `<div style="text-align:center"><img src="${src}" style="width:${width}; border-radius:12px;"></div>`;
-            }
-            return '';
-          }).join('');
-        } 
-        // Handle Legacy Array JSON
-        else if (Array.isArray(parsed)) {
-          finalContent = parsed.map(b => {
-            if (b.type === 'text') {
-              const style = b.styles ? `style="font-size: ${b.styles.fontSize || 'inherit'}"` : '';
-              return `<p ${style}>${b.content}</p>`;
-            }
-            if (b.type === 'image') {
-              const driveUrl = getDirectDriveLink(b.url);
-              const width = b.styles?.width || '100%';
-              const align = b.styles?.alignment || 'center';
-              return `<div style="text-align: ${align}"><img src="${driveUrl}" style="width:${width}; border-radius: 12px;"></div>`;
-            }
-            return '';
-          }).join('');
-        }
-      } catch (e) {
-        console.error("Conversion error:", e);
-      }
-    }
-    
-    setContent(finalContent);
     setTitle(a.title || '');
-    setImageUrl(a.image_url || '');
-  };
-
-  // Helper to extract the first image URL from TipTap JSON
-  const extractFirstImage = (json) => {
-    if (!json || typeof json !== 'object') return null;
-    
-    // Recursive search through TipTap node tree
-    const findImage = (node) => {
-      if (!node) return null;
-      if (node.type === 'image') return node.attrs?.src;
-      
-      if (node.content && Array.isArray(node.content)) {
-        for (const child of node.content) {
-          const found = findImage(child);
-          if (found) return found;
-        }
+    setHeroImage(a.image_url || '');
+    try {
+      let content = a.content;
+      if (typeof content === 'string' && (content.startsWith('[') || content.startsWith('{'))) {
+        content = JSON.parse(content);
+        if (typeof content === 'string') content = JSON.parse(content);
       }
-      return null;
-    };
-    
-    return findImage(json);
+      setBlocks(Array.isArray(content) ? content : [{ id: 'init', type: 'text', content: content || '' }]);
+    } catch (e) { setBlocks([]); }
   };
 
   const handleSave = async () => {
-    let finalContent = content;
-    let finalImageUrl = imageUrl;
-
-    // If content is TipTap JSON object, serialize it and extract image
-    if (typeof content === 'object' && content !== null) {
-      finalImageUrl = extractFirstImage(content) || '';
-      finalContent = JSON.stringify(content);
-    }
-
-    const payload = { 
-      title, 
-      content: finalContent, 
-      image_url: finalImageUrl 
-    };
-    
+    const payload = { title, content: JSON.stringify(blocks), image_url: heroImage };
     try {
       if (selected) {
-        const res = await axios.put(`http://localhost:5000/api/announcements/${selected.id}`, payload, { 
-          headers: { Authorization: `Bearer ${token}` } 
-        });
-        // Update local state with the returned data from server
-        const updated = announcements.map(a => a.id === selected.id ? res.data : a);
-        setAnnouncements(updated);
+        const res = await axios.put(`http://localhost:5000/api/announcements/${selected.id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+        setAnnouncements(announcements.map(a => a.id === selected.id ? res.data : a));
       } else {
-        const res = await axios.post('http://localhost:5000/api/announcements/', payload, { 
-          headers: { Authorization: `Bearer ${token}` } 
-        });
+        const res = await axios.post('http://localhost:5000/api/announcements/', payload, { headers: { Authorization: `Bearer ${token}` } });
         setAnnouncements([res.data, ...announcements]);
         setSelected(res.data);
       }
       setIsEditing(false);
-      // Removed fetchAnnouncements() to avoid flickering; manual state update is cleaner
-    } catch (err) { 
-      alert("Publication failed. Check your connection or permissions."); 
-    }
+    } catch (err) { alert("Save failed."); }
   };
 
-  const createNew = () => {
-    setSelected(null);
-    setContent('');
-    setTitle('');
-    setImageUrl('');
-    setIsEditing(true);
-  };
-
-  if (loading) return <div style={{ padding: '40px' }}>Loading Dashboard...</div>;
+  if (loading) return <div className="studio-init">Preparing Experience Studio...</div>;
 
   return (
-    <div style={{ height: 'calc(100vh - 120px)', display: 'flex', gap: '25px' }}>
-      
-      {/* Sidebar List */}
-      <div style={{ width: '320px', display: 'flex', flexDirection: 'column' }}>
-        <button onClick={createNew} className="btn btn-primary" style={{ width: '100%', marginBottom: '20px', gap: '10px' }}>
-          <Plus size={18}/> New Announcement
-        </button>
-        <div className="card" style={{ flex: 1, overflowY: 'auto', padding: 0 }}>
-          {announcements.length === 0 && (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
-              No announcements yet.
-            </div>
-          )}
-          {announcements.map((a) => (
-            <div 
-              key={a.id} 
-              onClick={() => handleSelect(a)} 
-              style={{ 
-                padding: '15px 20px', 
-                borderBottom: '1px solid #f1f5f9', 
-                cursor: 'pointer', 
-                background: selected?.id === a.id ? '#eff6ff' : 'transparent',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                transition: 'all 0.2s',
-                position: 'relative',
-                borderLeft: selected?.id === a.id ? '4px solid var(--siia-blue)' : '4px solid transparent'
-              }}
-              className="announcement-item"
-            >
-              <div style={{ flex: 1, overflow: 'hidden' }}>
-                <div style={{ fontWeight: '700', fontSize: '13px', color: 'var(--siia-navy)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.title}</div>
-                <div style={{ fontSize: '11px', color: '#94a3b8' }}>{new Date(a.created_at).toLocaleDateString()}</div>
+    <div className="studio-shell">
+      {/* Immersive Sidebar */}
+      <aside className="studio-nav">
+        <div className="nav-header">
+          <div className="brand">SIIA Studio</div>
+          <button onClick={() => { setSelected(null); setTitle(''); setBlocks([{ id: 'new', type: 'text', content: '' }]); setHeroImage(''); setIsEditing(true); }} className="add-btn"><Plus size={18}/></button>
+        </div>
+        
+        <div className="search-bar">
+          <Search size={14} />
+          <input placeholder="Search library..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+        </div>
+
+        <div className="entry-list">
+          {announcements.filter(a => a.title.toLowerCase().includes(searchTerm.toLowerCase())).map((a) => (
+            <div key={a.id} onClick={() => handleSelect(a)} className={`entry-item ${selected?.id === a.id ? 'active' : ''}`}>
+              <div className="entry-dot" />
+              <div className="entry-info">
+                <div className="entry-title">{a.title || "Untitled"}</div>
+                <div className="entry-date">{new Date(a.created_at).toLocaleDateString()}</div>
               </div>
-              <button 
-                onClick={(e) => handleDelete(e, a.id)}
-                style={{ 
-                  background: 'none', 
-                  border: 'none', 
-                  color: '#94a3b8', 
-                  cursor: 'pointer',
-                  padding: '5px',
-                  borderRadius: '4px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
-                onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
-              >
-                <Trash2 size={16}/>
-              </button>
             </div>
           ))}
         </div>
-      </div>
+      </aside>
 
-      {/* Editor Canvas */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div className="card" style={{ flex: 1, padding: '40px', overflowY: 'auto', background: '#fff', position: 'relative' }}>
-          
-          {/* Header Actions */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-            <div style={{ flex: 1 }}>
-              {isEditing ? (
-                <input 
-                  value={title} 
-                  onChange={e => setTitle(e.target.value)} 
-                  placeholder="Announcement Title..." 
-                  style={{ fontSize: '2rem', fontWeight: '800', border: 'none', background: 'transparent', width: '100%', outline: 'none', color: 'var(--siia-navy)' }} 
-                />
-              ) : (
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: 'var(--siia-navy)' }}>{title}</h1>
-              )}
-            </div>
-            
-            <div style={{ display: 'flex', gap: '10px' }}>
-              {isEditing ? (
-                <>
-                  <button onClick={() => setIsEditing(false)} className="btn btn-secondary"><X size={18}/> Cancel</button>
-                  <button onClick={handleSave} className="btn btn-primary"><Save size={18}/> Publish Changes</button>
-                </>
-              ) : (
-                <button onClick={() => setIsEditing(true)} className="btn btn-secondary"><Edit3 size={18}/> Edit Content</button>
-              )}
-            </div>
+      {/* Main Designer Canvas */}
+      <main className="studio-main">
+        <header className="main-header" style={{ 
+          backgroundImage: heroImage ? `linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.9)), url(${convertDriveLink(heroImage)})` : 'none',
+          backgroundColor: '#0f172a'
+        }}>
+          <div className="header-content">
+            {isEditing ? (
+              <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter Experience Title..." className="title-edit" />
+            ) : (
+              <h1 className="title-display">{title || "Start Designing"}</h1>
+            )}
           </div>
 
-          {/* Main Editor */}
-          <div className="editor-section">
+          <div className="top-actions">
             {isEditing ? (
-              <WordEditor 
-                key={selected?.id || 'new'}
-                value={content} 
-                onChange={(data) => setContent(data)} 
-              />
+              <>
+                <button onClick={() => setIsEditing(false)} className="act-btn glass"><X size={16}/> Discard</button>
+                <button onClick={handleSave} className="act-btn primary"><Save size={16}/> Publish Changes</button>
+              </>
             ) : (
-              <div 
-                className="announcement-preview ck-content"
-                dangerouslySetInnerHTML={{ __html: typeof content === 'object' ? '<p><i>Word-style content: Click Edit to view</i></p>' : content }} 
-                style={{ 
-                  lineHeight: '1.8', 
-                  fontSize: '1.1rem',
-                  color: '#334155'
-                }} 
-              />
+              <>
+                <button onClick={() => window.open(`/news/${selected?.id}`, '_blank')} className="act-btn glass"><ExternalLink size={16}/> Live Preview</button>
+                <button onClick={() => setIsEditing(true)} className="act-btn primary"><Edit3 size={16}/> Edit Experience</button>
+              </>
+            )}
+          </div>
+        </header>
+
+        <div className="canvas-content">
+          <div className="canvas-card">
+            {isEditing ? (
+              <div className="editor-zone">
+                <div className="hero-config">
+                  <ImageIcon size={14} />
+                  <input value={heroImage} onChange={e => setHeroImage(convertDriveLink(e.target.value))} placeholder="Cover Image URL (Google Drive supported)" />
+                </div>
+                <CustomBlockEditor initialBlocks={blocks} onChange={setBlocks} />
+              </div>
+            ) : (
+              <div className="preview-zone">
+                {selected ? (
+                  <div className="prose-preview" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(renderPreviewHtml(blocks)) }} />
+                ) : (
+                  <div className="empty-state">
+                    <LayoutDashboard size={48} />
+                    <h3>Experience Designer</h3>
+                    <p>Select a story to begin the creative process.</p>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
-      </div>
+      </main>
+
+      <style>{`
+        .studio-shell { display: grid; grid-template-columns: 320px 1fr; height: calc(100vh - 80px); background: #f1f5f9; }
+        
+        .studio-nav { background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; padding: 24px; }
+        .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+        .brand { font-weight: 900; font-size: 1.2rem; color: #1e293b; letter-spacing: -0.5px; }
+        .add-btn { background: #2563eb; color: #fff; border: none; padding: 8px; border-radius: 8px; cursor: pointer; }
+        
+        .search-bar { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; gap: 10px; color: #94a3b8; margin-bottom: 24px; }
+        .search-bar input { background: transparent; border: none; outline: none; flex: 1; font-size: 13px; color: #1e293b; }
+
+        .entry-list { flex: 1; overflow-y: auto; }
+        .entry-item { padding: 12px; border-radius: 12px; cursor: pointer; display: flex; gap: 12px; align-items: center; margin-bottom: 4px; transition: 0.2s; border: 1px solid transparent; }
+        .entry-item:hover { background: #f8fafc; }
+        .entry-item.active { background: #eff6ff; border-color: #dbeafe; }
+        .entry-dot { width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%; }
+        .entry-item.active .entry-dot { background: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
+        .entry-title { font-weight: 700; font-size: 13px; color: #1e293b; }
+        .entry-date { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+        .studio-main { display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .main-header { height: 320px; padding: 60px; display: flex; flex-direction: column; justify-content: flex-end; background-size: cover; background-position: center; transition: 0.4s; }
+        .title-edit { background: transparent; border: none; border-bottom: 2px solid rgba(255,255,255,0.2); color: #fff; font-size: 3rem; font-weight: 900; outline: none; width: 100%; }
+        .title-display { font-size: 3rem; font-weight: 900; color: #fff; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+
+        .top-actions { position: absolute; top: 40px; right: 60px; display: flex; gap: 12px; }
+        .act-btn { padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
+        .act-btn.glass { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; backdrop-filter: blur(12px); }
+        .act-btn.primary { background: #fff; color: #2563eb; border: none; }
+        .act-btn:hover { transform: translateY(-2px); }
+
+        .canvas-content { flex: 1; overflow-y: auto; padding: 0 60px 60px; margin-top: -60px; z-index: 10; }
+        .canvas-card { background: #fff; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); padding: 50px; min-height: 100%; max-width: 1000px; margin: 0 auto; border: 1px solid #f1f5f9; }
+        
+        .hero-config { display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 10px 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 40px; }
+        .hero-config input { background: transparent; border: none; outline: none; flex: 1; font-size: 12px; color: #475569; }
+        
+        .prose-preview { color: #334155; line-height: 1.8; }
+        .prose-preview a {
+          color: #2563eb;
+          text-decoration: underline;
+        }
+        .empty-state { height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #cbd5e1; }
+        .studio-init { height: 100vh; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #2563eb; letter-spacing: 2px; }
+      `}</style>
     </div>
   );
 };

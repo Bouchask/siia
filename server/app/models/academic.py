@@ -13,7 +13,8 @@ class Semester(db.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'courses_count': len(self.courses)
+            'courses_count': len(self.courses),
+            'courses': [c.to_dict() for c in self.courses]
         }
 
 class Course(db.Model):

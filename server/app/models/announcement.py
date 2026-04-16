@@ -7,6 +7,7 @@ class Announcement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     content = db.Column(db.Text, nullable=False)
+    excerpt = db.Column(db.String(200), nullable=True) # New auto-generated field
     image_url = db.Column(db.String(500), nullable=True) # New field for Drive Image Link
     author_id = db.Column(db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     is_published = db.Column(db.Boolean, default=True)
@@ -18,6 +19,7 @@ class Announcement(db.Model):
             'id': self.id,
             'title': self.title,
             'content': self.content,
+            'excerpt': self.excerpt,
             'image_url': self.image_url,
             'author_id': str(self.author_id),
             'is_published': self.is_published,

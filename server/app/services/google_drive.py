@@ -25,11 +25,17 @@ class GoogleDriveService:
             return None
 
     def get_timetables(self):
-        s6_id = Setting.get('timetable_s6_id', '13kxh1ef3rkI-Mrc2UrhlcOXpU4U9FQa7')
-        s8_id = Setting.get('timetable_s8_id', '1kJu5eY9ceLd2FjYIZIbyrv3DFeHfhhcz')
+        # Fetch all settings that start with 'timetable_' and end with '_id'
+        tt_settings = Setting.get_all_by_prefix('timetable_')
+        
+        file_ids = [s.value for s in tt_settings if s.key.endswith('_id')]
+        
+        # Fallback if none found (original defaults)
+        if not file_ids:
+            file_ids = ['13kxh1ef3rkI-Mrc2UrhlcOXpU4U9FQa7', '1kJu5eY9ceLd2FjYIZIbyrv3DFeHfhhcz']
         
         files = []
-        for file_id in [s6_id, s8_id]:
+        for file_id in file_ids:
             try:
                 file_data = self.service.files().get(
                     fileId=file_id, fields="id, name, webViewLink, mimeType"

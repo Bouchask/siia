@@ -12,6 +12,10 @@ class Setting(db.Model):
         return setting.value if setting else default
 
     @staticmethod
+    def get_all_by_prefix(prefix):
+        return Setting.query.filter(Setting.key.like(f"{prefix}%")).all()
+
+    @staticmethod
     def set(key, value):
         setting = Setting.query.get(key)
         if setting:

@@ -8,7 +8,7 @@ import {
   ChevronRight,
   Info,
   CheckCircle,
-  Users
+  MapPin
 } from 'lucide-react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -16,20 +16,25 @@ import './Home.css';
 
 const Home = () => {
   const [announcements, setAnnouncements] = useState([]);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAnnouncements = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/announcements/');
-        setAnnouncements(response.data.slice(0, 3)); // Only show top 3 on home
+        const [newsRes, eventsRes] = await Promise.all([
+          axios.get('http://localhost:5000/api/announcements/'),
+          axios.get('http://localhost:5000/api/events/')
+        ]);
+        setAnnouncements(newsRes.data.slice(0, 3));
+        setEvents(eventsRes.data.slice(0, 3));
       } catch (error) {
-        console.error("Error fetching announcements:", error);
+        console.error("Error fetching home data:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchAnnouncements();
+    fetchData();
   }, []);
 
   return (
@@ -104,7 +109,46 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 3. FEATURES */}
+      {/* 3. UPCOMING EVENTS */}
+      <section className="section-padding" style={{ background: '#f8fafc' }}>
+        <div className="home-container">
+          <div className="section-header">
+            <div>
+              <p style={{color: 'var(--siia-blue)', fontWeight: 'bold', fontSize: '14px', letterSpacing: '2px', marginBottom: '10px'}}>CALENDAR</p>
+              <h2 style={{fontSize: '2.5rem', color: 'var(--siia-navy)'}}>Upcoming Events</h2>
+            </div>
+            <Link to="/events" style={{color: 'var(--siia-blue)', fontWeight: 'bold', textDecoration: 'none', display: 'flex', alignItems: 'center'}}>
+              Full Calendar <ChevronRight size={18} />
+            </Link>
+          </div>
+
+          {loading ? (
+             <div style={{textAlign: 'center', padding: '40px'}}><p>Loading events...</p></div>
+          ) : events.length > 0 ? (
+            <div className="announcement-grid">
+              {events.map((event) => (
+                <div key={event.id} className="announcement-card event-h-card">
+                  <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
+                    <span className="badge" style={{ background: '#eff6ff', color: '#2563eb' }}>Event</span>
+                    <span style={{color: '#2563eb', fontSize: '13px', fontWeight: 'bold'}}>{new Date(event.event_date).toLocaleDateString()}</span>
+                  </div>
+                  <h3 style={{fontSize: '1.25rem', marginBottom: '10px', lineHeight: '1.4', color: 'var(--siia-navy)'}}>{event.title}</h3>
+                  <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <MapPin size={12} /> {event.location}
+                  </p>
+                  <Link to={`/events/${event.id}`} style={{fontSize: '14px', fontWeight: 'bold', color: '#1e293b', textDecoration: 'none'}}>View Details</Link>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{textAlign: 'center', padding: '60px', background: '#fff', borderRadius: '12px', border: '2px dashed #e2e8f0'}}>
+              <p style={{color: '#94a3b8'}}>No scheduled events.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 4. FEATURES */}
       <section className="section-padding features-section">
         <div className="home-container">
           <div style={{textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px'}}>
@@ -138,7 +182,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 4. EXCELLENCE */}
+      {/* 5. EXCELLENCE */}
       <section className="section-padding">
         <div className="home-container">
           <div className="excellence-grid">

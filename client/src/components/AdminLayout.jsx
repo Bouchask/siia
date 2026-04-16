@@ -28,6 +28,7 @@ const AdminLayout = () => {
     { path: '/admin/users', label: 'Manage Users', icon: <Users size={20}/>, roles: ['admin'] },
     { path: '/admin/announcements', label: 'Announcements', icon: <Bell size={20}/>, roles: ['admin', 'professor'] },
     { path: '/admin/events', label: 'Department Events', icon: <Calendar size={20}/>, roles: ['admin', 'professor'] },
+    { path: '/admin/courses', label: 'Course Materials', icon: <BookOpen size={20}/>, roles: ['admin', 'professor'] },
     { path: '/admin/academic', label: 'Academic Structure', icon: <GraduationCap size={20}/>, roles: ['admin'] },
     { path: '/admin/timetables', label: 'Timetables', icon: <BookOpen size={20}/>, roles: ['admin'] },
   ];

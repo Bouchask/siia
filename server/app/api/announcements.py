@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.announcement import Announcement
 from app import db
 from app.utils.decorators import requires_role
+from app.utils.tiptap import generate_excerpt
 
 announcements_bp = Blueprint('announcements', __name__)
 
@@ -23,10 +24,14 @@ def create_announcement():
     data = request.get_json()
     user_id = get_jwt_identity()
     
+    content = data.get('content')
+    excerpt = generate_excerpt(content)
+
     new_announcement = Announcement(
         title=data.get('title'),
-        content=data.get('content'),
-        image_url=data.get('image_url'), # Handle image URL
+        content=content,
+        excerpt=excerpt,
+        image_url=data.get('image_url'),
         author_id=user_id,
         is_published=data.get('is_published', True)
     )
@@ -41,9 +46,12 @@ def update_announcement(id):
     announcement = Announcement.query.get_or_404(id)
     data = request.get_json()
     
+    if 'content' in data:
+        announcement.content = data.get('content')
+        announcement.excerpt = generate_excerpt(announcement.content)
+
     announcement.title = data.get('title', announcement.title)
-    announcement.content = data.get('content', announcement.content)
-    announcement.image_url = data.get('image_url', announcement.image_url) # Update image URL
+    announcement.image_url = data.get('image_url', announcement.image_url)
     announcement.is_published = data.get('is_published', announcement.is_published)
     
     db.session.commit()
