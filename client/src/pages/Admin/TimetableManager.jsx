@@ -20,8 +20,15 @@ const TimetableManager = () => {
   // States
   const [editData, setEditData] = useState({ name: '', drive_id: '', key: '' });
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newTT, setNewTT] = useState({ key_suffix: '', drive_id: '' });
+  const [newTT, setNewTT] = useState({ key_suffix: '', drive_id: '', name: '' });
   const [status, setStatus] = useState({ type: '', msg: '' });
+
+  // Utility to extract Drive ID from a full link
+  const extractDriveId = (input) => {
+    if (!input) return '';
+    const match = input.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{25,})/);
+    return match ? match[1] : input;
+  };
 
   useEffect(() => { init(); }, []);
 
@@ -70,13 +77,24 @@ const TimetableManager = () => {
 
   const handleAdd = async (e) => {
     e.preventDefault();
+    const driveId = extractDriveId(newTT.drive_id);
     const fullKey = `timetable_${newTT.key_suffix.toLowerCase()}_id`;
     try {
-      await settingService.update({ [fullKey]: newTT.drive_id });
+      // 1. Associate ID in Settings
+      await settingService.update({ [fullKey]: driveId });
+      
+      // 2. If a custom name is provided, rename the file on Drive
+      if (newTT.name) {
+        await timetableService.rename(driveId, newTT.name);
+      }
+
       setShowAddModal(false);
-      setNewTT({ key_suffix: '', drive_id: '' });
+      setNewTT({ key_suffix: '', drive_id: '', name: '' });
       refreshData();
-    } catch (err) { alert("Association failed."); }
+    } catch (err) { 
+      console.error(err);
+      alert("Association failed. Please check the File ID and your permissions."); 
+    }
   };
 
   if (loading) return <div className="studio-init">Preparing Schedule Workspace...</div>;
@@ -199,26 +217,35 @@ const TimetableManager = () => {
               <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '32px' }}>Associate a semester slot with a Google Drive file ID for real-time synchronization.</p>
               
               <form onSubmit={handleAdd} className="modal-form">
-                <div className="m-field" style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.5px' }}>Choose Academic Period</label>
+                <div className="m-field" style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>Display Name (Optional)</label>
+                  <input 
+                    placeholder="e.g. Master S8 Timetable" 
+                    value={newTT.name} 
+                    onChange={e => setNewTT({...newTT, name: e.target.value})} 
+                    style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', fontWeight: 600, fontSize: '14px' }}
+                  />
+                </div>
+                <div className="m-field" style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>Choose Academic Period</label>
                   <select 
                     value={newTT.key_suffix} 
                     onChange={e => setNewTT({...newTT, key_suffix: e.target.value})} 
                     required
-                    style={{ width: '100%', padding: '14px', borderRadius: '14px', border: '1px solid #e2e8f0', background: '#f8fafc', fontWeight: 600, fontSize: '14px' }}
+                    style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', fontWeight: 600, fontSize: '14px' }}
                   >
                     <option value="">Select Period...</option>
                     {semesters.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                   </select>
                 </div>
                 <div className="m-field" style={{ marginBottom: '32px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.5px' }}>Google Drive File ID</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>Google Drive Link / File ID</label>
                   <input 
-                    placeholder="Paste File ID from Drive URL..." 
+                    placeholder="Paste File ID or Drive Link here..." 
                     value={newTT.drive_id} 
                     onChange={e => setNewTT({...newTT, drive_id: e.target.value})} 
                     required 
-                    style={{ width: '100%', padding: '14px', borderRadius: '14px', border: '1px solid #e2e8f0', background: '#f8fafc', fontWeight: 600, fontSize: '14px' }}
+                    style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', fontWeight: 600, fontSize: '14px' }}
                   />
                 </div>
                 <button type="submit" className="m-submit" style={{ width: '100%', padding: '16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
