@@ -45,6 +45,7 @@ const AnnouncementManager = () => {
   const [title, setTitle] = useState('');
   const [blocks, setBlocks] = useState([]);
   const [heroImage, setHeroImage] = useState('');
+  const [isPublished, setIsPublished] = useState(true);
 
   useEffect(() => { fetchAnnouncements(); }, []);
 
@@ -61,6 +62,7 @@ const AnnouncementManager = () => {
     setIsEditing(false);
     setTitle(a.title || '');
     setHeroImage(a.image_url || '');
+    setIsPublished(a.is_published !== false);
     try {
       let content = a.content;
       if (typeof content === 'string' && (content.startsWith('[') || content.startsWith('{'))) {
@@ -72,7 +74,12 @@ const AnnouncementManager = () => {
   };
 
   const handleSave = async () => {
-    const payload = { title, content: JSON.stringify(blocks), image_url: heroImage };
+    const payload = { 
+      title, 
+      content: JSON.stringify(blocks), 
+      image_url: heroImage,
+      is_published: isPublished 
+    };
     try {
       if (selected) {
         const data = await announcementService.update(selected.id, payload);
@@ -108,7 +115,10 @@ const AnnouncementManager = () => {
               <div className="entry-dot" />
               <div className="entry-info">
                 <div className="entry-title">{a.title || "Untitled"}</div>
-                <div className="entry-date">{new Date(a.created_at).toLocaleDateString()}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="entry-date">{new Date(a.created_at).toLocaleDateString()}</div>
+                  {a.is_published === false && <span style={{ fontSize: '10px', background: '#fee2e2', color: '#dc2626', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>DRAFT</span>}
+                </div>
               </div>
             </div>
           ))}
@@ -148,9 +158,31 @@ const AnnouncementManager = () => {
           <div className="canvas-card">
             {isEditing ? (
               <div className="editor-zone">
-                <div className="hero-config">
-                  <ImageIcon size={14} />
-                  <input value={heroImage} onChange={e => setHeroImage(convertDriveLink(e.target.value))} placeholder="Cover Image URL (Google Drive supported)" />
+                <div className="hero-config" style={{ gap: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                    <ImageIcon size={14} />
+                    <input value={heroImage} onChange={e => setHeroImage(convertDriveLink(e.target.value))} placeholder="Cover Image URL (Google Drive supported)" style={{ width: '100%' }} />
+                  </div>
+                  <div style={{ borderLeft: '1px solid #e2e8f0', paddingLeft: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b' }}>Status:</label>
+                    <select 
+                      value={isPublished} 
+                      onChange={e => setIsPublished(e.target.value === 'true')}
+                      style={{ 
+                        background: isPublished ? '#ecfdf5' : '#fef2f2',
+                        color: isPublished ? '#059669' : '#dc2626',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '4px 8px',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="true">Published</option>
+                      <option value="false">Draft / Private</option>
+                    </select>
+                  </div>
                 </div>
                 <CustomBlockEditor initialBlocks={blocks} onChange={setBlocks} />
               </div>

@@ -64,6 +64,7 @@ const AnnouncementDetail = () => {
   const navigate = useNavigate();
   const [announcement, setAnnouncement] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchAnnouncement = async () => {
@@ -82,6 +83,12 @@ const AnnouncementDetail = () => {
 
   if (loading) return <div className="loading-state">Designing your view...</div>;
   if (!announcement) return <div className="not-found">Announcement not found.</div>;
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const htmlContent = blocksToHtml(announcement.content);
   const cleanHtml = DOMPurify.sanitize(htmlContent);
@@ -116,8 +123,21 @@ const AnnouncementDetail = () => {
           />
           
           <div className="news-footer">
-            <div className="footer-actions">
-              <button className="icon-btn"><Share2 size={18} /></button>
+            <div className="footer-actions" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button 
+                  className="icon-btn" 
+                  onClick={handleShare} 
+                  style={{ 
+                    background: copied ? '#22c55e' : '', 
+                    color: copied ? '#fff' : '',
+                    borderColor: copied ? '#22c55e' : ''
+                  }}
+                >
+                  <Share2 size={18} />
+                </button>
+                {copied && <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#22c55e' }}>Link Copied!</span>}
+              </div>
               <button className="icon-btn"><Bookmark size={18} /></button>
             </div>
           </div>

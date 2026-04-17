@@ -67,7 +67,9 @@ const Announcements = () => {
           </div>
         ) : announcements.length > 0 ? (
           <div className="announcement-grid" style={{ paddingBottom: '100px' }}>
-            {announcements.map((item, index) => (
+            {announcements
+              .filter(a => a.is_published !== false)
+              .map((item, index) => (
               <AnnouncementCard key={item.id} announcement={item} index={index} />
             ))}
           </div>

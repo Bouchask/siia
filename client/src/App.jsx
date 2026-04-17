@@ -56,10 +56,10 @@ const Navbar = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderRight: '2px solid #e2e8f0', paddingRight: '12px' }}>
               <img 
                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFhuZNvXJkSIg_aLu29110tcqV7y4CuLneww&s" 
-                alt="FPK Logo" 
+                alt="TP Logo" 
                 style={{ height: '32px', width: 'auto' }}
               />
-              <span style={{ fontSize: '9px', fontWeight: '900', color: '#64748b', lineHeight: '1', width: '50px' }}>FPK <br/> KHOURIBGA</span>
+              <span style={{ fontSize: '9px', fontWeight: '900', color: '#64748b', lineHeight: '1', width: '50px' }}>TP <br/> KHOURIBGA</span>
             </div>
             <span style={{ fontSize: '1.2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>SIIA</span>
           </Link>

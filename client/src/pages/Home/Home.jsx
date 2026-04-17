@@ -50,7 +50,10 @@ const Home = () => {
           setError("Connection to server could not be established.");
         }
         
-        setAnnouncements(Array.isArray(newsRes) ? newsRes.slice(0, 3) : (newsRes.data || []).slice(0, 3));
+        const publishedNews = (Array.isArray(newsRes) ? newsRes : (newsRes.data || []))
+          .filter(a => a.is_published !== false);
+        
+        setAnnouncements(publishedNews.slice(0, 3));
         setEvents(Array.isArray(eventsRes) ? eventsRes.slice(0, 3) : (eventsRes.data || []).slice(0, 3));
       } catch (err) {
         console.error("Error fetching home data:", err);
