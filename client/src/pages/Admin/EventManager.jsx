@@ -108,14 +108,24 @@ const EventManager = () => {
     }
   };
 
-  const handleDelete = async (e, id) => {
-    e.stopPropagation();
+  const handleDelete = async () => {
+    if (!selected) return;
     if (!window.confirm("Delete this event permanently?")) return;
     try {
-      await eventService.delete(id);
-      const updated = events.filter(ev => ev.id !== id);
+      await eventService.delete(selected.id);
+      const updated = events.filter(ev => ev.id !== selected.id);
       setEvents(updated);
-      if (selected?.id === id) handleSelect(updated[0] || null);
+      if (updated.length > 0) {
+        handleSelect(updated[0]);
+      } else {
+        setSelected(null);
+        setTitle('');
+        setBlocks([]);
+        setHeroImage('');
+        setLocation('');
+        setEventDate('');
+      }
+      alert("Event deleted successfully.");
     } catch (err) { alert("Delete failed."); }
   };
 
@@ -169,7 +179,10 @@ const EventManager = () => {
                 <button onClick={handleSave} className="act-btn primary"><Save size={16}/> Schedule Event</button>
               </>
             ) : (
-              <button onClick={() => setIsEditing(true)} className="act-btn primary"><Edit3 size={16}/> Edit Experience</button>
+              <>
+                <button onClick={handleDelete} className="act-btn glass" style={{ borderColor: '#ef4444', color: '#ef4444' }}><Trash2 size={16}/> Delete Event</button>
+                <button onClick={() => setIsEditing(true)} className="act-btn primary"><Edit3 size={16}/> Edit Experience</button>
+              </>
             )}
           </div>
         </header>
