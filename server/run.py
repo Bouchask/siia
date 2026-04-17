@@ -1,4 +1,7 @@
+import sys
 import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from flask import jsonify
 from sqlalchemy import text
 from app import create_app, db
