@@ -7,6 +7,9 @@ load_dotenv()
 class Config:
     # Database Configuration
     db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        print("CRITICAL: DATABASE_URL environment variable is MISSING!")
+    
     if db_url and db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
     

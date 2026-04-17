@@ -1,3 +1,4 @@
+import os
 from flask import jsonify
 from sqlalchemy import text
 from app import create_app, db
@@ -6,6 +7,8 @@ app = create_app()
 
 @app.route('/api/db-test')
 def db_test():
+    if os.environ.get('ENABLE_DB_TEST') != 'true':
+        return jsonify({"status": "disabled", "message": "DB test route is disabled for security."}), 403
     try:
         # Attempt to execute a simple query
         db.session.execute(text('SELECT 1'))
