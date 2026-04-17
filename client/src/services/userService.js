@@ -11,6 +11,11 @@ export const userService = {
     return response.data;
   },
 
+  update: async (id, payload) => {
+    const response = await api.put(`/api/users/${id}`, payload);
+    return response.data;
+  },
+
   delete: async (id) => {
     const response = await api.delete(`/api/users/${id}`);
     return response.data;

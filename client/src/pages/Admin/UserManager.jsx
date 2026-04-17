@@ -14,10 +14,14 @@ const UserManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [showAdd, setShowAdd] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   
   // Form State
   const [formData, setFormData] = useState({
     email: '', password: '', first_name: '', last_name: '', role: 'student'
+  });
+  const [editData, setEditData] = useState({
+    id: '', email: '', password: '', first_name: '', last_name: '', role: 'student'
   });
 
   useEffect(() => { fetchUsers(); }, []);
@@ -49,6 +53,31 @@ const UserManager = () => {
     } catch (err) { 
       console.error(err);
       alert(err.response?.data?.error || "User creation failed."); 
+    }
+  };
+
+  const handleEdit = (user) => {
+    setEditData({
+      id: user.id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+      password: '' // Don't pre-fill password
+    });
+    setShowEdit(true);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const data = await userService.update(editData.id, editData);
+      setUsers(users.map(u => u.id === editData.id ? data : u));
+      setShowEdit(false);
+      alert("Account updated successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Update failed.");
     }
   };
 
@@ -137,7 +166,7 @@ const UserManager = () => {
               </div>
 
               <div className="card-actions">
-                <button className="edit-btn">Manage</button>
+                <button onClick={() => handleEdit(u)} className="edit-btn">Manage</button>
                 <button onClick={() => handleDelete(u.id)} className="delete-btn"><Trash2 size={16}/></button>
               </div>
             </motion.div>
@@ -181,6 +210,49 @@ const UserManager = () => {
                   </select>
                 </div>
                 <button type="submit" className="submit-btn">Initialize Account</button>
+              </form>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Edit User Drawer */}
+      <AnimatePresence>
+        {showEdit && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowEdit(false)} className="drawer-overlay" />
+            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="drawer">
+              <div className="drawer-header">
+                <h2>Manage Account</h2>
+                <button onClick={() => setShowEdit(false)}><X /></button>
+              </div>
+              <form onSubmit={handleUpdate} className="drawer-form">
+                <div className="form-group">
+                  <label>First Name</label>
+                  <input required value={editData.first_name} onChange={e => setEditData({...editData, first_name: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Last Name</label>
+                  <input required value={editData.last_name} onChange={e => setEditData({...editData, last_name: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Email Address</label>
+                  <input type="email" required value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} />
+                </div>
+                <div className="form-group" style={{ background: '#fffbeb', padding: '15px', borderRadius: '12px', border: '1px solid #fde68a' }}>
+                  <label style={{ color: '#92400e' }}>Update Password (Optional)</label>
+                  <input type="password" placeholder="Leave blank to keep current" value={editData.password} onChange={e => setEditData({...editData, password: e.target.value})} />
+                  <p style={{ fontSize: '10px', color: '#b45309', marginTop: '8px' }}>Entering a value here will permanently overwrite the user's password.</p>
+                </div>
+                <div className="form-group">
+                  <label>System Role</label>
+                  <select value={editData.role} onChange={e => setEditData({...editData, role: e.target.value})}>
+                    <option value="student">Student</option>
+                    <option value="professor">Professor</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                </div>
+                <button type="submit" className="submit-btn" style={{ background: '#0f172a' }}>Save Identity Changes</button>
               </form>
             </motion.div>
           </>

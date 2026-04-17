@@ -51,6 +51,24 @@ def create_user():
     
     return jsonify(new_user.to_dict()), 201
 
+@users_bp.route('/<uuid:user_id>', methods=['PUT'])
+@jwt_required()
+@requires_role('admin')
+def update_user(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+    
+    user.first_name = data.get('first_name', user.first_name)
+    user.last_name = data.get('last_name', user.last_name)
+    user.role = data.get('role', user.role)
+    user.email = data.get('email', user.email)
+    
+    if data.get('password'):
+        user.set_password(data.get('password'))
+        
+    db.session.commit()
+    return jsonify(user.to_dict()), 200
+
 @users_bp.route('/<uuid:user_id>', methods=['DELETE'])
 @jwt_required()
 @requires_role('admin')
