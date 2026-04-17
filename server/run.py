@@ -10,6 +10,7 @@ app = create_app()
 
 @app.route('/api/db-test')
 def db_test():
+    # v2 - Forced Deployment
     try:
         # Attempt to execute a simple query
         db.session.execute(text('SELECT 1'))
