@@ -5,6 +5,16 @@ from app import db
 
 auth_bp = Blueprint('auth', __name__)
 
+@auth_bp.route('/db-test', methods=['GET'])
+def db_test():
+    from app import db
+    from sqlalchemy import text
+    try:
+        db.session.execute(text('SELECT 1'))
+        return jsonify({"status": "success", "message": "Database connected successfully!"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
