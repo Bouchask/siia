@@ -8,9 +8,9 @@ from app import create_app, db
 
 app = create_app()
 
-@app.route('/api/db-test-v3')
-def db_test_v3():
-    # v3 - Caching Bypass
+@app.route('/api/db-test')
+def db_test():
+    # v4 - Diagnostic
     try:
         # Attempt to execute a simple query
         db.session.execute(text('SELECT 1'))
