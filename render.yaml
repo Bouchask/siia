@@ -28,7 +28,6 @@ services:
   - type: web
     name: siia-frontend
     env: static
-    region: frankfurt # Choose your preferred region
     buildCommand: "cd client && npm install && npm run build"
     staticPublishPath: "./client/dist"
     envVars:
