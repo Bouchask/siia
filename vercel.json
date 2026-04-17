@@ -8,19 +8,23 @@
     {
       "src": "client/package.json",
       "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "config": { "distDir": "dist" }
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "server/run.py"
+      "src": "/api/(.*)",
+      "dest": "server/run.py"
     },
     {
-      "source": "/(.*)",
-      "destination": "client/index.html"
+      "src": "/(.*)",
+      "dest": "client/$1",
+      "check": true
+    },
+    {
+      "src": "/(.*)",
+      "status": 404,
+      "dest": "client/index.html"
     }
   ]
 }
