@@ -29,6 +29,45 @@ def login():
 
     return jsonify({"error": "Invalid email or password"}), 401
 
+@auth_bp.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+
+    print(f"[AUTH] Register attempt for email: {email}")
+
+    if not all([email, password, first_name, last_name]):
+        return jsonify({"error": "All fields are required"}), 400
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({"error": "Email already exists"}), 400
+
+    new_user = User(
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        role='student' # Default role for registration
+    )
+    new_user.set_password(password)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    # Automatically log in the user after registration
+    access_token = create_access_token(
+        identity=str(new_user.id),
+        additional_claims={"role": new_user.role}
+    )
+
+    return jsonify({
+        "message": "User registered successfully",
+        "access_token": access_token,
+        "user": new_user.to_dict()
+    }), 201
+
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def get_me():

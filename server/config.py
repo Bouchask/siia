@@ -17,8 +17,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Security Configuration
-    SECRET_KEY = os.getenv('SECRET_KEY', 'dev_secret_key')
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt_secret_key')
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     
     # CORS Configuration
