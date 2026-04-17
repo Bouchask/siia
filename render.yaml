@@ -7,7 +7,6 @@ services:
   - type: web
     name: siia-backend
     env: python
-    region: frankfurt # Choose your preferred region
     buildCommand: "pip install -r server/requirements.txt"
     startCommand: "cd server && flask db upgrade && gunicorn run:app"
     envVars:
