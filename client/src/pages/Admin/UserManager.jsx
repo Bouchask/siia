@@ -40,10 +40,16 @@ const UserManager = () => {
     e.preventDefault();
     try {
       const data = await authService.register(formData);
-      setUsers([...users, data]);
+      // Ensure the returned user object is valid
+      const newUser = data.user || data;
+      setUsers(prevUsers => [...prevUsers, newUser]);
       setShowAdd(false);
       setFormData({ email: '', password: '', first_name: '', last_name: '', role: 'student' });
-    } catch (err) { alert("User creation failed."); }
+      alert("Account created successfully!");
+    } catch (err) { 
+      console.error(err);
+      alert(err.response?.data?.error || "User creation failed."); 
+    }
   };
 
   const handleDelete = async (id) => {
