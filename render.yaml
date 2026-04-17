@@ -1,11 +1,13 @@
 databases:
   - name: siia_db
+    plan: free
     databaseName: siia
     user: siia_user
 
 services:
   - type: web
     name: siia-backend
+    plan: free
     env: python
     buildCommand: "pip install -r server/requirements.txt"
     startCommand: "cd server && flask db upgrade && gunicorn run:app"
