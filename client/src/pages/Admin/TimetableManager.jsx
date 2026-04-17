@@ -163,27 +163,70 @@ const TimetableManager = () => {
       {/* Add Modal */}
       <AnimatePresence>
         {showAddModal && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddModal(false)} className="drawer-overlay" />
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="tt-modal">
-              <h2>Add Timetable Slot</h2>
-              <p>Associate a semester slot with a Google Drive file ID.</p>
+          <div style={{ position: 'fixed', inset: 0, z-index: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setShowAddModal(false)} 
+              className="drawer-overlay" 
+              style={{ position: 'absolute', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)' }}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+              className="tt-modal"
+              style={{ 
+                position: 'relative', 
+                width: '480px', 
+                maxWidth: '90vw',
+                background: '#fff', 
+                borderRadius: '32px', 
+                padding: '40px', 
+                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                zIndex: 10001
+              }}
+            >
+              <button 
+                onClick={() => setShowAddModal(false)}
+                style={{ position: 'absolute', top: '24px', right: '24px', background: '#f1f5f9', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={20} />
+              </button>
+
+              <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', marginBottom: '8px' }}>Add Timetable Slot</h2>
+              <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '32px' }}>Associate a semester slot with a Google Drive file ID for real-time synchronization.</p>
+              
               <form onSubmit={handleAdd} className="modal-form">
-                <div className="m-field">
-                  <label>Choose Academic Period</label>
-                  <select value={newTT.key_suffix} onChange={e => setNewTT({...newTT, key_suffix: e.target.value})} required>
+                <div className="m-field" style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.5px' }}>Choose Academic Period</label>
+                  <select 
+                    value={newTT.key_suffix} 
+                    onChange={e => setNewTT({...newTT, key_suffix: e.target.value})} 
+                    required
+                    style={{ width: '100%', padding: '14px', borderRadius: '14px', border: '1px solid #e2e8f0', background: '#f8fafc', fontWeight: 600, fontSize: '14px' }}
+                  >
                     <option value="">Select Period...</option>
                     {semesters.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                   </select>
                 </div>
-                <div className="m-field">
-                  <label>Google Drive File ID</label>
-                  <input placeholder="Paste ID here..." value={newTT.drive_id} onChange={e => setNewTT({...newTT, drive_id: e.target.value})} required />
+                <div className="m-field" style={{ marginBottom: '32px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.5px' }}>Google Drive File ID</label>
+                  <input 
+                    placeholder="Paste File ID from Drive URL..." 
+                    value={newTT.drive_id} 
+                    onChange={e => setNewTT({...newTT, drive_id: e.target.value})} 
+                    required 
+                    style={{ width: '100%', padding: '14px', borderRadius: '14px', border: '1px solid #e2e8f0', background: '#f8fafc', fontWeight: 600, fontSize: '14px' }}
+                  />
                 </div>
-                <button type="submit" className="m-submit">Establish Connection</button>
+                <button type="submit" className="m-submit" style={{ width: '100%', padding: '16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                  <CheckCircle size={18} /> Establish Connection
+                </button>
               </form>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
 
@@ -231,15 +274,6 @@ const TimetableManager = () => {
         .w-actions button { background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px; border-radius: 6px; color: #64748b; cursor: pointer; }
         .iframe-container { flex: 1; background: #f1f5f9; }
         .iframe-container iframe { border: none; }
-
-        .drawer-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; }
-        .tt-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; background: #fff; border-radius: 24px; padding: 40px; z-index: 1001; box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
-        .tt-modal h2 { margin: 0; font-weight: 900; color: #0f172a; }
-        .tt-modal p { color: #64748b; font-size: 14px; margin: 10px 0 30px; }
-        .m-field { margin-bottom: 20px; }
-        .m-field label { display: block; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
-        .m-field input, .m-field select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; outline: none; font-weight: 600; }
-        .m-submit { width: 100%; padding: 14px; background: #2563eb; color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 10px; }
 
         .studio-init { height: 100vh; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #2563eb; letter-spacing: 2px; }
       `}</style>
