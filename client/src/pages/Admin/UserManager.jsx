@@ -116,17 +116,19 @@ const UserManager = () => {
               className="user-card"
             >
               <div className="card-top">
-                <div className="avatar-large">{u.first_name[0]}{u.last_name[0]}</div>
-                <div className="role-badge" data-role={u.role}>
+                <div className="avatar-large">
+                  {(u.first_name?.[0] || '?')}{(u.last_name?.[0] || '?')}
+                </div>
+                <div className="role-badge" data-role={u.role || 'student'}>
                   {u.role === 'admin' ? <Shield size={12}/> : u.role === 'professor' ? <UserCheck size={12}/> : <Users size={12}/>}
-                  {u.role}
+                  {u.role || 'student'}
                 </div>
               </div>
               
               <div className="card-info">
-                <h3>{u.first_name} {u.last_name}</h3>
+                <h3>{u.first_name || 'Unknown'} {u.last_name || 'User'}</h3>
                 <div className="email-link">
-                  <Mail size={12} /> {u.email}
+                  <Mail size={12} /> {u.email || 'No email provided'}
                 </div>
               </div>
 
