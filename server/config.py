@@ -6,7 +6,7 @@ load_dotenv()
 
 class Config:
     # Database Configuration
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://localhost/siia_db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Security Configuration
