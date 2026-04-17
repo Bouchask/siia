@@ -14,7 +14,8 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server/run.py"
+      "dest": "server/run.py",
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     },
     {
       "src": "/(.*)",
