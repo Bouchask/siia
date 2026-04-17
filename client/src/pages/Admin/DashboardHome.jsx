@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import userService from '../../services/userService';
+import courseService from '../../services/courseService';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -22,20 +23,17 @@ const DashboardHome = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/users/stats', { 
-          headers: { Authorization: `Bearer ${token}` } 
-        });
-        const data = response.data;
+        const statsData = await userService.getStats();
         setStats({
-          users: data.total_users,
-          news: data.announcements,
-          events: data.events,
-          courses: data.students // Using students count as an example for now or keeping it separate
+          users: statsData.total_users,
+          news: statsData.announcements,
+          events: statsData.events,
+          courses: statsData.students // Using students count as an example for now or keeping it separate
         });
 
         // Get course count separately as it's in a different module
-        const cRes = await axios.get('http://localhost:5000/api/academic/courses');
-        setStats(prev => ({ ...prev, courses: cRes.data.length }));
+        const coursesData = await courseService.getAll();
+        setStats(prev => ({ ...prev, courses: coursesData.length }));
         
       } catch (err) { console.error(err); }
     };

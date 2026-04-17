@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import userService from '../../services/userService';
+import authService from '../../services/authService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, Plus, Trash2, Shield, Mail, 
   Search, Filter, MoreVertical, X, Check,
   UserPlus, UserCheck, ShieldAlert
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 
 const UserManager = () => {
-  const { token } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
   const [showAdd, setShowAdd] = useState(false);
   
   // Form State
@@ -24,21 +24,23 @@ const UserManager = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/users/', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUsers(res.data);
+      const data = await userService.getAll();
+      setUsers(data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
 
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = `${u.first_name} ${u.last_name} ${u.email}`.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = filterRole === 'all' || u.role === filterRole;
+    return matchesSearch && matchesRole;
+  });
+
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUsers([...users, res.data]);
+      const data = await authService.register(formData);
+      setUsers([...users, data]);
       setShowAdd(false);
       setFormData({ email: '', password: '', first_name: '', last_name: '', role: 'student' });
     } catch (err) { alert("User creation failed."); }
@@ -47,9 +49,7 @@ const UserManager = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Remove this user permanently?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await userService.delete(id);
       setUsers(users.filter(u => u.id !== id));
     } catch (err) { alert("Delete failed."); }
   };
@@ -78,21 +78,41 @@ const UserManager = () => {
           />
         </div>
         <div className="filter-tabs">
-          <button className="active">All Members</button>
-          <button>Professors</button>
-          <button>Students</button>
+          <button 
+            className={filterRole === 'all' ? 'active' : ''} 
+            onClick={() => setFilterRole('all')}
+          >All Members</button>
+          <button 
+            className={filterRole === 'professor' ? 'active' : ''} 
+            onClick={() => setFilterRole('professor')}
+          >Professors</button>
+          <button 
+            className={filterRole === 'student' ? 'active' : ''} 
+            onClick={() => setFilterRole('student')}
+          >Students</button>
+          <button 
+            className={filterRole === 'admin' ? 'active' : ''} 
+            onClick={() => setFilterRole('admin')}
+          >Admins</button>
         </div>
       </div>
 
       <div className="user-grid">
-        <AnimatePresence>
-          {users.filter(u => `${u.first_name} ${u.last_name} ${u.email}`.toLowerCase().includes(searchTerm.toLowerCase())).map((u, idx) => (
+        <AnimatePresence mode="popLayout">
+          {filteredUsers.map((u, idx) => (
             <motion.div 
               key={u.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ delay: idx * 0.03 }}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                opacity: { duration: 0.2 },
+                layout: { duration: 0.3 }
+              }}
               className="user-card"
             >
               <div className="card-top">
@@ -180,7 +200,7 @@ const UserManager = () => {
         .filter-tabs button.active { background: #f1f5f9; color: #0f172a; }
 
         .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-        .user-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 24px; transition: 0.3s; position: relative; overflow: hidden; }
+        .user-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 24px; position: relative; overflow: hidden; }
         .user-card:hover { transform: translateY(-5px); border-color: #2563eb; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }

@@ -22,6 +22,7 @@ class Announcement(db.Model):
             'excerpt': self.excerpt,
             'image_url': self.image_url,
             'author_id': str(self.author_id),
+            'author_name': f"{self.author.first_name} {self.author.last_name}" if self.author else "SIIA Official",
             'is_published': self.is_published,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()

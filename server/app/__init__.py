@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -14,8 +15,23 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Initialize extensions with app context
-    CORS(app)
+    # Configure CORS for production and development
+    allowed_origins = [
+        os.environ.get("FRONTEND_URL")
+    ]
+    
+    # Add local development origins if not in production
+    if os.environ.get("FLASK_ENV") != "production":
+        allowed_origins.extend([
+            "http://localhost:5173",
+            "http://127.0.0.1:5173"
+        ])
+
+    # Remove None values and ensure uniqueness
+    allowed_origins = list(set(origin for origin in allowed_origins if origin))
+    
+    CORS(app, resources={r"/api/*": {"origins": allowed_origins, "allow_headers": ["Content-Type", "Authorization"]}})
+    
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)

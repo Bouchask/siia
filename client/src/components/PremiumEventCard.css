@@ -1,0 +1,195 @@
+/* Premium Event Card - Advanced Adaptive Logic */
+.premium-event-card {
+  background: var(--siia-white);
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--siia-border);
+  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+  
+  /* Advanced: Ensure consistent height across grid without rigid min-height */
+  justify-content: space-between;
+}
+
+@media (min-width: 1025px) {
+  .premium-event-card:hover {
+    border-color: var(--siia-blue);
+    box-shadow: 0 40px 80px -20px rgba(15, 23, 42, 0.12);
+    transform: translateY(-10px);
+  }
+}
+
+.card-image-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10; /* Better balance for Windows and Mobile */
+  overflow: hidden;
+  display: block;
+  background: var(--siia-bg);
+}
+
+@media (min-width: 992px) {
+  .card-image-wrap {
+    height: 240px; /* Fixed height for desktop to align grid */
+    aspect-ratio: auto;
+  }
+}
+
+.card-actual-img {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.premium-event-card:hover .card-actual-img {
+  transform: scale(1.12);
+}
+
+.card-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(15, 23, 42, 0.5));
+  z-index: 1;
+}
+
+.card-date-float {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  width: 52px;
+  height: 62px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.card-date-float .day {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--siia-navy);
+  line-height: 1;
+}
+
+.card-date-float .month {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--siia-blue);
+  text-transform: uppercase;
+  margin-top: 2px;
+  letter-spacing: 1px;
+}
+
+.card-content-area {
+  padding: clamp(20px, 3vw, 28px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--siia-text-light);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-divider {
+  color: var(--siia-border);
+  opacity: 0.5;
+}
+
+.card-title {
+  font-size: clamp(1.2rem, 1.5vw, 1.4rem);
+  color: var(--siia-navy);
+  font-weight: 800;
+  line-height: 1.4;
+  margin: 0;
+  letter-spacing: -0.02em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 24px;
+  transition: color 0.3s ease;
+}
+
+.premium-event-card:hover .card-title {
+  color: var(--siia-blue);
+}
+
+/* Advanced: Footer alignment logic */
+.card-cta-btn {
+  margin-top: auto; /* Pushes button to the bottom always */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--siia-bg);
+  padding: 14px 20px;
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--siia-navy);
+  font-weight: 800;
+  font-size: 12px;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border: 1px solid var(--siia-border);
+}
+
+.card-cta-btn:hover {
+  background: var(--siia-navy);
+  color: var(--siia-white);
+  border-color: var(--siia-navy);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
+}
+
+.btn-icon {
+  background: var(--siia-white);
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--siia-navy);
+  transition: all 0.4s ease;
+}
+
+.card-cta-btn:hover .btn-icon {
+  background: var(--siia-blue);
+  color: var(--siia-white);
+  transform: rotate(-45deg);
+}
+
+/* Specific Windows/Desktop Adjustment */
+@media screen and (-webkit-min-device-pixel-ratio:0) and (min-width: 1025px) {
+  .premium-event-card {
+    /* Smoother rendering for Windows browsers */
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+}

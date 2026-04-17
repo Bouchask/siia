@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import authService from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -11,10 +11,8 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       // Check if token is still valid and fetch user data
-      axios.get('http://localhost:5000/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(res => setUser(res.data))
+      authService.getMe()
+      .then(userData => setUser(userData))
       .catch(() => {
         logout();
       })
@@ -25,8 +23,8 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
-    const { access_token, user: userData } = res.data;
+    const data = await authService.login(email, password);
+    const { access_token, user: userData } = data;
     localStorage.setItem('siia_token', access_token);
     setToken(access_token);
     setUser(userData);

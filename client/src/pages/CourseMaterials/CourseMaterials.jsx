@@ -1,36 +1,43 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import academicService from '../../services/academicService';
+import courseService from '../../services/courseService';
+import settingService from '../../services/settingService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  BookOpen, FileText, DownloadCloud, ChevronRight, 
-  ExternalLink, Search, GraduationCap, Info, Layout
+  BookOpen, FileText, ChevronRight, 
+  ExternalLink, Search, GraduationCap, Info, Layout,
+  Layers, Book, ArrowLeft
 } from 'lucide-react';
-import { convertDriveLink } from '../../components/CustomBlockEditor/utils';
+import { convertDriveViewLink } from '../../components/CustomBlockEditor/utils';
+import '../Home/Home.css';
 
 const CourseMaterials = () => {
   const [semesters, setSemesters] = useState([]);
   const [courses, setCourses] = useState([]);
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
-  const [activeSem, setActiveSem] = useState(null);
+  
+  const [viewStep, setViewStep] = useState('semesters');
+  const [activeSemester, setActiveSemester] = useState(null);
+  const [expandedModuleId, setExpandedModuleId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [semRes, courRes, setRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/academic/semesters'),
-          axios.get('http://localhost:5000/api/academic/courses'),
-          axios.get('http://localhost:5000/api/settings/')
+        const [semData, courData, setData] = await Promise.all([
+          academicService.getSemesters().catch(() => []),
+          courseService.getAll().catch(() => []),
+          settingService.getAll().catch(() => ({}))
         ]);
-        setSemesters(semRes.data);
-        setCourses(courRes.data);
-        setSettings(setRes.data);
-        if (semRes.data.length > 0) setActiveSem(semRes.data[0].id);
+        setSemesters(semData.sort((a,b) => a.name.localeCompare(b.name)));
+        setCourses(courData);
+        setSettings(setData);
       } catch (err) { console.error(err); }
       finally { setLoading(false); }
     };
     fetchData();
+    window.scrollTo(0, 0);
   }, []);
 
   const getCourseMaterials = (courseId) => {
@@ -39,152 +46,219 @@ const CourseMaterials = () => {
     try { return JSON.parse(raw); } catch { return null; }
   };
 
-  const filteredCourses = courses.filter(c => 
-    c.semester_id === activeSem && 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleSemesterClick = (sem) => {
+    setActiveSemester(sem);
+    setViewStep('modules');
+    setExpandedModuleId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleModule = (courseId) => {
+    setExpandedModuleId(expandedModuleId === courseId ? null : courseId);
+  };
+
+  const resetToSemesters = () => {
+    setViewStep('semesters');
+    setActiveSemester(null);
+    setExpandedModuleId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (loading) return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--siia-bg)' }}>
+       <div className="loader-spiral" style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: 'var(--siia-blue)', borderRadius: '50%', animation: 'spin 1s infinite linear' }}></div>
+       <p style={{ marginTop: '20px', fontWeight: '800', color: 'var(--siia-blue)', letterSpacing: '1px' }}>SYNCHRONIZING LIBRARY...</p>
+    </div>
   );
 
-  if (loading) return <div className="loader-full">Synchronizing Digital Library...</div>;
+  const filteredModules = activeSemester 
+    ? courses.filter(c => c.semester_id === activeSemester.id && c.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : [];
 
   return (
-    <div className="materials-portal">
+    <div className="materials-drilldown" style={{ background: 'var(--siia-bg)', minHeight: '100vh', paddingTop: '100px' }}>
       <div className="home-container">
-        {/* Portal Header */}
-        <header className="portal-header">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="portal-badge">
-            <GraduationCap size={14} /> <span>Open Knowledge Base</span>
-          </motion.div>
-          <h1>Academic <br/> Resources</h1>
-          <p>Access curated course materials, laboratory work, and exercises shared by your professors.</p>
-        </header>
-
-        {/* Navigation & Search */}
-        <div className="portal-controls">
-          <div className="sem-tabs">
-            {semesters.map(sem => (
-              <button 
-                key={sem.id} 
-                onClick={() => setActiveSem(sem.id)}
-                className={activeSem === sem.id ? 'active' : ''}
-              >
-                {sem.name}
-              </button>
-            ))}
+        
+        <header className="section-padding" style={{ paddingBottom: '60px' }}>
+          <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+            <button onClick={resetToSemesters} style={{ background: 'none', border: 'none', fontSize: '11px', fontWeight: '900', color: viewStep === 'semesters' ? 'var(--siia-navy)' : 'var(--siia-text-light)', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '1.5px', padding: 0 }}>
+              Library
+            </button>
+            {activeSemester && (
+              <>
+                <ChevronRight size={14} color="var(--siia-text-light)" />
+                <button onClick={() => setExpandedModuleId(null)} style={{ background: 'none', border: 'none', fontSize: '11px', fontWeight: '900', color: 'var(--siia-navy)', cursor: 'default', textTransform: 'uppercase', letterSpacing: '1.5px', padding: 0 }}>
+                  {activeSemester.name}
+                </button>
+              </>
+            )}
           </div>
-          <div className="search-wrap">
-            <Search size={18} />
-            <input 
-              placeholder="Filter courses..." 
-              value={searchTerm} 
-              onChange={e => setSearchTerm(e.target.value)} 
-            />
-          </div>
-        </div>
 
-        {/* Resources Grid */}
-        <div className="courses-grid">
-          {filteredCourses.map((course, idx) => {
-            const data = getCourseMaterials(course.id);
-            return (
-              <motion.div 
-                key={course.id} 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="course-card-premium"
-              >
-                <div className="card-top">
-                  <div className="icon-box"><BookOpen size={24} /></div>
-                  <div className="title-box">
-                    <h3>{course.name}</h3>
-                    <span className="prof">Dr. {course.professor_name || 'Department Faculty'}</span>
-                  </div>
-                </div>
-
-                <div className="card-sections">
-                  {/* Category: Lectures */}
-                  {data?.lectures?.length > 0 && (
-                    <div className="mat-section">
-                      <label>LECTURES & NOTES</label>
-                      {data.lectures.map(item => (
-                        <a key={item.id} href={convertDriveLink(item.drive_id)} target="_blank" className="mat-link">
-                          <FileText size={14} /> <span>{item.title || 'Untitled Part'}</span> <ExternalLink size={12} />
-                        </a>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Category: TDs */}
-                  {data?.tds?.length > 0 && (
-                    <div className="mat-section">
-                      <label>TD (EXERCISES)</label>
-                      {data.tds.map(item => (
-                        <a key={item.id} href={convertDriveLink(item.drive_id)} target="_blank" className="mat-link td">
-                          <Layout size={14} /> <span>{item.title}</span> <DownloadCloud size={12} />
-                        </a>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Category: TPs */}
-                  {data?.tps?.length > 0 && (
-                    <div className="mat-section">
-                      <label>TP (PRACTICALS)</label>
-                      {data.tps.map(item => (
-                        <a key={item.id} href={convertDriveLink(item.drive_id)} target="_blank" className="mat-link tp">
-                          <DownloadCloud size={14} /> <span>{item.title}</span> <ExternalLink size={12} />
-                        </a>
-                      ))}
-                    </div>
-                  )}
-
-                  {!data && (
-                    <div className="no-data-hint">
-                      <Info size={14} /> <span>Materials coming soon.</span>
-                    </div>
-                  )}
+          <div className="header-main">
+            {viewStep === 'semesters' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <h1 className="hero-title">Academic <br/> <span className="text-gradient">Directory</span></h1>
+                <p className="hero-subtitle">Select your semester to access specialized course resources, digital archives, and research materials.</p>
+              </motion.div>
+            )}
+            {viewStep === 'modules' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <h1 className="hero-title">{activeSemester.name} <span className="text-gradient">Modules</span></h1>
+                <div className="search-bar-modern" style={{ marginTop: '32px', display: 'flex', alignItems: 'center', gap: '15px', background: '#fff', padding: '16px 24px', borderRadius: '16px', border: '1px solid var(--siia-border)', maxWidth: '500px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                  <Search size={18} color="var(--siia-text-light)" />
+                  <input 
+                    placeholder="Search by module name..." 
+                    style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '15px', fontWeight: '600', color: 'var(--siia-navy)', width: '100%' }}
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                  />
                 </div>
               </motion.div>
-            );
-          })}
-        </div>
+            )}
+          </div>
+        </header>
+
+        <AnimatePresence mode="wait">
+          {viewStep === 'semesters' && (
+            <motion.div 
+              key="semesters"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              className="announcement-grid"
+              style={{ paddingBottom: '100px' }}
+            >
+              {semesters.map((sem, idx) => (
+                <motion.button 
+                  key={sem.id} 
+                  whileHover={{ y: -8 }}
+                  onClick={() => handleSemesterClick(sem)} 
+                  style={{ 
+                    position: 'relative', overflow: 'hidden', background: '#0f172a', 
+                    borderRadius: '28px', padding: '40px', border: 'none', textAlign: 'left', 
+                    cursor: 'pointer', display: 'flex', flexDirection: 'column', 
+                    justifyContent: 'space-between', height: '260px', transition: 'all 0.3s ease'
+                  }}
+                >
+                  <div style={{ fontSize: '4rem', fontWeight: '900', color: '#fff', lineHeight: '1', letterSpacing: '-3px' }}>{sem.name}</div>
+                  <div style={{ position: 'relative', zIndex: 2 }}>
+                    <div style={{ color: '#fff', fontWeight: '800', fontSize: '14px', marginBottom: '8px' }}>{sem.courses_count || 0} Modules Available</div>
+                    <div style={{ color: 'var(--siia-blue)', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      Explore Library <ChevronRight size={14} />
+                    </div>
+                  </div>
+                  <div style={{ position: 'absolute', right: '-20px', bottom: '-20px', color: 'rgba(255,255,255,0.05)', transform: 'rotate(-15deg)', pointerEvents: 'none' }}>
+                    <GraduationCap size={140} />
+                  </div>
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+
+          {viewStep === 'modules' && (
+            <motion.div 
+              key="modules"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '900px', paddingBottom: '100px' }}
+            >
+              <button 
+                onClick={resetToSemesters}
+                style={{ background: 'none', border: 'none', color: 'var(--siia-blue)', fontWeight: '800', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '10px' }}
+              >
+                <ArrowLeft size={16} /> Back to Library
+              </button>
+
+              {filteredModules.length > 0 ? filteredModules.map((course, idx) => {
+                const materials = getCourseMaterials(course.id);
+                const isExpanded = expandedModuleId === course.id;
+
+                return (
+                  <div key={course.id} style={{ background: '#fff', border: '1px solid var(--siia-border)', borderRadius: '24px', overflow: 'hidden', transition: 'all 0.3s ease', boxShadow: isExpanded ? '0 20px 40px rgba(0,0,0,0.04)' : 'none' }}>
+                    <button 
+                      onClick={() => toggleModule(course.id)} 
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '24px', padding: '24px 32px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                    >
+                      <div style={{ width: '56px', height: '56px', background: 'var(--siia-bg)', color: 'var(--siia-blue)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Book size={24} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--siia-navy)', margin: '0 0 6px' }}>{course.name}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--siia-blue-light)', color: 'var(--siia-blue)', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', border: '1px solid #dbeafe' }}>
+                            {course.professor_name?.charAt(0) || 'P'}
+                          </div>
+                          <p style={{ color: 'var(--siia-text-light)', fontWeight: '700', fontSize: '12px', margin: 0 }}>
+                            {course.professor_name || 'Faculty Member'}
+                          </p>
+                        </div>
+                      </div>
+                      <div style={{ color: isExpanded ? 'var(--siia-blue)' : '#cbd5e1', transition: '0.3s', transform: isExpanded ? 'rotate(90deg)' : 'none' }}>
+                        <ChevronRight size={20} />
+                      </div>
+                    </button>
+
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          style={{ background: '#fcfdfe', borderTop: '1px solid var(--siia-border)', padding: '32px' }}
+                        >
+                          {materials ? (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '32px' }}>
+                              {['lectures', 'tds', 'tps'].map(cat => (
+                                materials[cat]?.length > 0 && (
+                                  <div key={cat} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                      <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--siia-text-light)' }}>
+                                        {cat === 'lectures' ? 'Lectures' : cat === 'tds' ? 'Travaux Dirigés' : 'Travaux Pratiques'}
+                                      </h4>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                      {materials[cat].map(item => (
+                                        <a key={item.id} href={convertDriveViewLink(item.drive_id)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderRadius: '14px', border: '1px solid var(--siia-border)', textDecoration: 'none', transition: '0.2s', background: '#fff' }} className="resource-item">
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--siia-navy)', fontWeight: '700', fontSize: '13px' }}>
+                                            <FileText size={14} color="var(--siia-blue)" />
+                                            <span>{item.title}</span>
+                                          </div>
+                                          <ExternalLink size={12} color="var(--siia-text-light)" />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )
+                              ))}
+                            </div>
+                          ) : (
+                            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--siia-text-light)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                              <Info size={24} />
+                              <p style={{ fontSize: '13px', fontWeight: '600' }}>No materials available for this course yet.</p>
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              }) : (
+                <div style={{ textAlign: 'center', padding: '80px 40px', background: '#fff', borderRadius: '32px', border: '1px solid var(--siia-border)' }}>
+                  <Info size={48} color="var(--siia-text-light)" style={{ marginBottom: '20px' }} />
+                  <p style={{ color: 'var(--siia-text)', fontSize: '1.1rem', marginBottom: '24px' }}>No modules found matching "{searchTerm}"</p>
+                  <button onClick={() => setSearchTerm('')} style={{ background: 'none', border: 'none', color: 'var(--siia-blue)', fontWeight: '800', cursor: 'pointer', textDecoration: 'underline' }}>Clear Search</button>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <style>{`
-        .materials-portal { background: #fff; min-height: 100vh; padding: 140px 0 100px; }
-        .portal-header { max-width: 800px; margin-bottom: 80px; }
-        .portal-badge { display: inline-flex; align-items: center; gap: 8px; background: #eff6ff; color: #2563eb; padding: 6px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 24px; }
-        .portal-header h1 { font-size: 4.5rem; font-weight: 900; color: #0f172a; line-height: 1; letter-spacing: -2px; margin: 0; }
-        .portal-header p { font-size: 1.25rem; color: #64748b; margin-top: 24px; line-height: 1.6; }
-
-        .portal-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px; border-bottom: 1px solid #f1f5f9; padding-bottom: 20px; gap: 20px; }
-        .sem-tabs { display: flex; gap: 10px; }
-        .sem-tabs button { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 24px; border-radius: 12px; font-weight: 700; color: #64748b; cursor: pointer; transition: 0.2s; }
-        .sem-tabs button.active { background: #0f172a; color: #fff; border-color: #0f172a; transform: translateY(-2px); }
-        
-        .search-wrap { display: flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 14px; width: 300px; }
-        .search-wrap input { background: transparent; border: none; outline: none; font-weight: 600; font-size: 14px; color: #1e293b; width: 100%; }
-
-        .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 30px; }
-        
-        .course-card-premium { background: #fff; border: 1px solid #f1f5f9; border-radius: 24px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); transition: 0.3s; }
-        .course-card-premium:hover { border-color: #e2e8f0; transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
-
-        .card-top { display: flex; gap: 20px; align-items: center; margin-bottom: 30px; }
-        .icon-box { width: 50px; height: 50px; background: #f1f5f9; color: #2563eb; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-        .title-box h3 { font-size: 1.3rem; font-weight: 800; color: #0f172a; margin: 0; }
-        .title-box .prof { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px; }
-
-        .card-sections { display: flex; flex-direction: column; gap: 24px; }
-        .mat-section label { display: block; font-size: 10px; font-weight: 900; color: #cbd5e1; margin-bottom: 10px; letter-spacing: 1px; }
-        
-        .mat-link { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f8fafc; border-radius: 10px; text-decoration: none; color: #1e293b; font-weight: 700; font-size: 13px; transition: 0.2s; margin-bottom: 6px; }
-        .mat-link:hover { background: #eff6ff; color: #2563eb; transform: translateX(5px); }
-        .mat-link.td:hover { background: #f5f3ff; color: #7c3aed; }
-        .mat-link.tp:hover { background: #ecfdf5; color: #059669; }
-        
-        .no-data-hint { display: flex; align-items: center; gap: 8px; color: #cbd5e1; font-size: 12px; font-style: italic; }
-        .loader-full { height: 100vh; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #2563eb; letter-spacing: 2px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .resource-item:hover { border-color: var(--siia-blue) !important; transform: translateX(5px); }
+        .resource-item:hover span { color: var(--siia-blue); }
       `}</style>
     </div>
   );

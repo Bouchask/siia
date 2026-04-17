@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Info } from 'lucide-react';
-import axios from 'axios';
+import { Bell, Info, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import announcementService from '../../services/announcementService';
 import AnnouncementCard from '../../components/AnnouncementCard';
 import '../Home/Home.css';
 
@@ -11,12 +12,13 @@ const Announcements = () => {
 
   useEffect(() => {
     fetchAnnouncements();
+    window.scrollTo(0, 0);
   }, []);
 
   const fetchAnnouncements = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/announcements/');
-      setAnnouncements(response.data);
+      const data = await announcementService.getAll();
+      setAnnouncements(data);
     } catch (error) {
       console.error("Error fetching announcements:", error);
     } finally {
@@ -25,42 +27,82 @@ const Announcements = () => {
   };
 
   return (
-    <div className="section-padding" style={{ background: '#f8fafc', minHeight: '100vh' }}>
+    <div className="announcements-page" style={{ background: 'var(--siia-bg)', minHeight: '100vh', paddingTop: '100px' }}>
       <div className="home-container">
         
-        <header style={{ marginBottom: '80px', textAlign: 'center' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', color: 'var(--siia-blue)', fontWeight: 'bold', marginBottom: '20px', fontSize: '14px', letterSpacing: '2px', textTransform: 'uppercase' }}>
-            <Bell size={20} /> Latest Updates
-          </div>
-          <h1 style={{ fontSize: '4rem', color: 'var(--siia-navy)', fontWeight: '900', lineHeight: 1 }}>Department Gallery</h1>
-          <p style={{ color: 'var(--siia-text)', fontSize: '1.2rem', marginTop: '20px', maxWidth: '700px', margin: '20px auto 0' }}>Discover the latest academic events, seminars, and official news from the SIIA major.</p>
+        <header className="section-padding" style={{ paddingBottom: '60px' }}>
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="badge-premium"
+            style={{ marginBottom: '24px' }}
+          >
+            <Bell size={14} /> 
+            Department Updates
+          </motion.div>
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="hero-title"
+            style={{ marginBottom: '24px' }}
+          >
+            SIIA <span className="text-gradient">News Gallery</span>
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="hero-subtitle"
+          >
+            Stay informed with the latest academic milestones, official announcements, and community highlights from the SIIA excellence track.
+          </motion.p>
         </header>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '100px' }}>
-            <p style={{ color: 'var(--siia-text)' }}>Building the gallery view...</p>
+          <div className="announcement-grid">
+            {[1, 2, 3].map(i => (
+              <div key={i} style={{ height: '500px', background: '#fff', borderRadius: '24px', animation: 'pulse 1.5s infinite' }}></div>
+            ))}
           </div>
         ) : announcements.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '40px' }}>
+          <div className="announcement-grid" style={{ paddingBottom: '100px' }}>
             {announcements.map((item, index) => (
-              <motion.div 
-                key={item.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <AnnouncementCard announcement={item} />
-              </motion.div>
+              <AnnouncementCard key={item.id} announcement={item} index={index} />
             ))}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '100px', background: '#fff', borderRadius: '30px', border: '2px dashed #e2e8f0' }}>
-            <Info size={60} color="#cbd5e1" style={{ marginBottom: '20px' }} />
-            <h3 style={{ color: 'var(--siia-navy)', fontWeight: '800' }}>The gallery is currently quiet</h3>
-            <p style={{ color: 'var(--siia-text)' }}>Stay tuned for upcoming architectural highlights.</p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            style={{ 
+              textAlign: 'center', 
+              padding: '100px 40px', 
+              background: '#fff', 
+              borderRadius: '32px', 
+              border: '1px solid var(--siia-border)',
+              marginTop: '40px'
+            }}
+          >
+            <div style={{ width: '80px', height: '80px', background: 'var(--siia-blue-light)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: 'var(--siia-blue)' }}>
+              <Info size={40} />
+            </div>
+            <h3 style={{ fontSize: '1.8rem', color: 'var(--siia-navy)', fontWeight: '900', marginBottom: '12px' }}>The news board is quiet</h3>
+            <p style={{ color: 'var(--siia-text)', fontSize: '1.1rem', maxWidth: '500px', margin: '0 auto 32px' }}>We're currently preparing new updates. Check back soon for the latest from our department.</p>
+            <Link to="/" className="btn btn-primary">
+              <ArrowLeft size={18} style={{ marginRight: '10px' }} /> Return Home
+            </Link>
+          </motion.div>
         )}
       </div>
+
+      <style>{`
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 };

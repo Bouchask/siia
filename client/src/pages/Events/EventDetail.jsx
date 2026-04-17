@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import eventService from '../../services/eventService';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, MapPin, Clock, Share2, Bookmark } from 'lucide-react';
 import DOMPurify from 'dompurify';
@@ -50,8 +50,8 @@ const EventDetail = () => {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/events/${id}`);
-        setEvent(response.data);
+        const data = await eventService.getById(id);
+        setEvent(data);
       } catch (err) { console.error(err); } finally { setLoading(false); }
     };
     fetchEvent();
@@ -84,18 +84,19 @@ const EventDetail = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="event-detail-page">
       <div className="event-hero" style={{ 
         backgroundImage: event.image_url ? `linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.9)), url(${convertDriveLink(event.image_url)})` : 'linear-gradient(135deg, #1e293b, #334155)',
-        height: '500px', display: 'flex', alignItems: 'flex-end', paddingBottom: '80px', backgroundSize: 'cover', backgroundPosition: 'center'
+        display: 'flex', alignItems: 'flex-end', paddingBottom: '80px', backgroundSize: 'cover', backgroundPosition: 'center',
+        position: 'relative', zIndex: 1
       }}>
         <div className="home-container">
           <button onClick={() => navigate('/events')} className="back-btn"><ArrowLeft size={16} /> Back to Calendar</button>
           <div className="hero-meta-tags">
             <span className="event-type-badge">Official Event</span>
           </div>
-          <h1 style={{ color: '#fff', fontSize: '4rem', fontWeight: 900, marginTop: '20px', lineHeight: 1.1 }}>{event.title}</h1>
+          <h1 className="hero-event-title">{event.title}</h1>
         </div>
       </div>
 
-      <div className="home-container" style={{ marginTop: '-60px', paddingBottom: '100px' }}>
+      <div className="home-container detail-container-wrap">
         <div className="detail-grid">
           <div className="content-card-main">
             <div className="prose-view" dangerouslySetInnerHTML={{ __html: cleanHtml }} />
@@ -133,6 +134,9 @@ const EventDetail = () => {
 
       <style>{`
         .event-detail-page { background: #f8fafc; min-height: 100vh; }
+        .event-hero { min-height: 500px; padding-top: 120px; }
+        .hero-event-title { color: #fff; font-size: 4rem; font-weight: 900; marginTop: 20px; line-height: 1.1; letter-spacing: -2px; }
+        .detail-container-wrap { margin-top: -60px; padding-bottom: 100px; position: relative; z-index: 10; }
         .back-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 20px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 700; transition: 0.2s; margin-bottom: 30px; backdrop-filter: blur(10px); }
         .event-type-badge { background: #2563eb; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         
@@ -149,6 +153,21 @@ const EventDetail = () => {
 
         .prose-view { color: #334155; line-height: 1.8; font-size: 18px; }
         .loading-state { height: 100vh; display: flex; align-items: center; justify-content: center; color: #94a3b8; }
+
+        @media (max-width: 1024px) {
+          .detail-grid { grid-template-columns: 1fr; gap: 30px; }
+          .logistics-card { position: relative; top: 0; }
+          .hero-event-title { font-size: 3rem; }
+          .event-hero { min-height: 400px; }
+        }
+
+        @media (max-width: 768px) {
+          .content-card-main { padding: 40px 24px; border-radius: 20px; }
+          .hero-event-title { font-size: 2.2rem; letter-spacing: -1px; }
+          .event-hero { min-height: 350px; padding-bottom: 100px; }
+          .detail-container-wrap { margin-top: -80px; }
+          .back-btn { padding: 8px 16px; font-size: 14px; }
+        }
       `}</style>
     </motion.div>
   );

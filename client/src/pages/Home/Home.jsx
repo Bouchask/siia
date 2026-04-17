@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bell, 
   Calendar, 
@@ -7,35 +7,70 @@ import {
   ArrowRight, 
   ChevronRight,
   Info,
-  CheckCircle,
-  MapPin
+  MapPin,
+  Clock,
+  Zap,
+  ShieldCheck,
+  Target,
+  ArrowUp,
+  Mail,
+  Phone,
+  Share2,
+  Users,
+  Globe
 } from 'lucide-react';
-import axios from 'axios';
+import announcementService from '../../services/announcementService';
+import eventService from '../../services/eventService';
 import { Link } from 'react-router-dom';
+import AnnouncementCard from '../../components/AnnouncementCard';
+import PremiumEventCard from '../../components/PremiumEventCard';
+import homeData from '../../data/homeContent.json';
 import './Home.css';
 
 const Home = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [error, setError] = useState(null);
+
+  const { hero } = homeData;
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const [newsRes, eventsRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/announcements/'),
-          axios.get('http://localhost:5000/api/events/')
+          announcementService.getAll().catch(err => ({ data: [], error: true })),
+          eventService.getAll().catch(err => ({ data: [], error: true }))
         ]);
-        setAnnouncements(newsRes.data.slice(0, 3));
-        setEvents(eventsRes.data.slice(0, 3));
-      } catch (error) {
-        console.error("Error fetching home data:", error);
+        
+        if (newsRes.error && eventsRes.error) {
+          setError("Connection to server could not be established.");
+        }
+        
+        setAnnouncements(Array.isArray(newsRes) ? newsRes.slice(0, 3) : (newsRes.data || []).slice(0, 3));
+        setEvents(Array.isArray(eventsRes) ? eventsRes.slice(0, 3) : (eventsRes.data || []).slice(0, 3));
+      } catch (err) {
+        console.error("Error fetching home data:", err);
+        setError("An unexpected error occurred while loading content.");
       } finally {
         setLoading(false);
       }
     };
     fetchData();
+
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 500);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="home-wrapper">
@@ -45,180 +80,291 @@ const Home = () => {
         <div className="home-container">
           <div className="hero-grid">
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               className="hero-content"
             >
-              <span className="badge">Parcours d'Excellence</span>
-              <h1 className="hero-title">Welcome to the <br/> SIIA Community</h1>
+              <div className="hero-badge-container">
+                <span className="badge-premium">
+                  <Zap size={14} /> 
+                  {hero.badge}
+                </span>
+              </div>
+              <h1 className="hero-title">Engineering the <br/> <span className="text-gradient">Next Era</span> of AI</h1>
               <p className="hero-subtitle">
-                Shaping the future of Artificial Intelligence and Information Systems. Join Morocco's 
-                premier hub for academic innovation and professional excellence.
+                {hero.subtitle}
               </p>
               <div className="hero-actions">
-                <Link to="/announcements" className="btn btn-primary">Discover the Major <ArrowRight style={{marginLeft: '10px'}} size={18} /></Link>
-                <Link to="/courses" className="btn btn-secondary">Student Resources</Link>
+                <Link to="/announcements" className="btn btn-primary">
+                  Explore News <ArrowRight style={{marginLeft: '10px'}} size={18} />
+                </Link>
+                <Link to="/courses" className="btn btn-secondary">
+                  Access Resources
+                </Link>
+              </div>
+              
+              <div className="hero-stats">
+                {hero.stats.map((stat, i) => (
+                  <div className="stat-item" key={i}>
+                    <span className="stat-num">{stat.number}</span>
+                    <span className="stat-label">{stat.label}</span>
+                  </div>
+                ))}
               </div>
             </motion.div>
             
-            <div className="hero-image-container">
-              <img 
-                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=1200" 
-                alt="Students" 
-                className="hero-image"
-              />
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="hero-image-container"
+            >
+              <div className="hero-image-wrapper">
+                <img 
+                  src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1200" 
+                  alt="SIIA Collaborative Workspace" 
+                  className="hero-image"
+                />
+                <div className="hero-floating-card">
+                  <ShieldCheck size={24} color="#2563eb" />
+                  <div>
+                    <div className="card-label">{hero.floatingCard.label}</div>
+                    <div className="card-val">{hero.floatingCard.value}</div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* 2. ANNOUNCEMENTS */}
+      {/* 2. ANNOUNCEMENTS SECTION */}
       <section className="section-padding">
         <div className="home-container">
-          <div className="section-header">
-            <div>
-              <p style={{color: 'var(--siia-blue)', fontWeight: 'bold', fontSize: '14px', letterSpacing: '2px', marginBottom: '10px'}}>UPDATES</p>
-              <h2 style={{fontSize: '2.5rem', color: 'var(--siia-navy)'}}>Latest Announcements</h2>
+          <div className="section-header-modern">
+            <div className="header-titles">
+              <span className="section-tag">News & Insights</span>
+              <h2 className="section-title">Department Updates</h2>
             </div>
-            <Link to="/announcements" style={{color: 'var(--siia-blue)', fontWeight: 'bold', textDecoration: 'none', display: 'flex', alignItems: 'center'}}>
-              View all <ChevronRight size={18} />
+            <Link to="/announcements" className="link-more-btn">
+              <span>Explore All News</span>
+              <ChevronRight size={16} />
             </Link>
           </div>
 
           {loading ? (
-             <div style={{textAlign: 'center', padding: '40px'}}><p>Loading news...</p></div>
+             <div className="section-loading-state">
+               <div className="shimmer-card"></div>
+               <div className="shimmer-card"></div>
+               <div className="shimmer-card"></div>
+             </div>
+          ) : error ? (
+            <div className="empty-state-card">
+              <Info size={40} color="#ef4444" />
+              <p>{error}</p>
+            </div>
           ) : announcements.length > 0 ? (
             <div className="announcement-grid">
-              {announcements.map((item) => (
-                <div key={item.id} className="announcement-card">
-                  <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
-                    <span className="badge">News</span>
-                    <span style={{color: '#94a3b8', fontSize: '13px'}}>{new Date(item.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <h3 style={{fontSize: '1.25rem', marginBottom: '15px', lineHeight: '1.4', color: 'var(--siia-navy)'}}>{item.title}</h3>
-                  <Link to={`/news/${item.id}`} style={{fontSize: '14px', fontWeight: 'bold', color: '#64748b', textDecoration: 'none'}}>Read More</Link>
-                </div>
+              {announcements.map((item, index) => (
+                <AnnouncementCard key={item.id} announcement={item} index={index} />
               ))}
             </div>
           ) : (
-            <div style={{textAlign: 'center', padding: '60px', background: 'var(--siia-light)', borderRadius: '12px', border: '2px dashed #e2e8f0'}}>
-              <Info size={48} color="#cbd5e1" style={{marginBottom: '15px'}} />
-              <p style={{color: '#94a3b8'}}>No new announcements at this time.</p>
+            <div className="empty-state-card">
+              <Info size={40} color="#cbd5e1" />
+              <p>The announcement board is currently clear.</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* 3. UPCOMING EVENTS */}
-      <section className="section-padding" style={{ background: '#f8fafc' }}>
-        <div className="home-container">
-          <div className="section-header">
-            <div>
-              <p style={{color: 'var(--siia-blue)', fontWeight: 'bold', fontSize: '14px', letterSpacing: '2px', marginBottom: '10px'}}>CALENDAR</p>
-              <h2 style={{fontSize: '2.5rem', color: 'var(--siia-navy)'}}>Upcoming Events</h2>
+      {/* 3. EVENTS SECTION - THE ANGLED DESIGN */}
+      <section className="section-padding angled-section">
+        <div className="angled-bg"></div>
+        <div className="home-container relative-z">
+          <div className="section-header-modern inverted">
+            <div className="header-titles">
+              <span className="section-tag">Experience SIIA</span>
+              <h2 className="section-title">Upcoming Events</h2>
             </div>
-            <Link to="/events" style={{color: 'var(--siia-blue)', fontWeight: 'bold', textDecoration: 'none', display: 'flex', alignItems: 'center'}}>
-              Full Calendar <ChevronRight size={18} />
+            <Link to="/events" className="link-more-btn">
+              <span>View Full Calendar</span>
+              <ChevronRight size={16} />
             </Link>
           </div>
 
           {loading ? (
-             <div style={{textAlign: 'center', padding: '40px'}}><p>Loading events...</p></div>
-          ) : events.length > 0 ? (
+             <div className="section-loading-state">
+               <div className="shimmer-card-event"></div>
+               <div className="shimmer-card-event"></div>
+               <div className="shimmer-card-event"></div>
+             </div>
+          ) : error ? null : events.length > 0 ? (
             <div className="announcement-grid">
-              {events.map((event) => (
-                <div key={event.id} className="announcement-card event-h-card">
-                  <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
-                    <span className="badge" style={{ background: '#eff6ff', color: '#2563eb' }}>Event</span>
-                    <span style={{color: '#2563eb', fontSize: '13px', fontWeight: 'bold'}}>{new Date(event.event_date).toLocaleDateString()}</span>
-                  </div>
-                  <h3 style={{fontSize: '1.25rem', marginBottom: '10px', lineHeight: '1.4', color: 'var(--siia-navy)'}}>{event.title}</h3>
-                  <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <MapPin size={12} /> {event.location}
-                  </p>
-                  <Link to={`/events/${event.id}`} style={{fontSize: '14px', fontWeight: 'bold', color: '#1e293b', textDecoration: 'none'}}>View Details</Link>
-                </div>
+              {events.map((event, index) => (
+                <PremiumEventCard key={event.id} event={event} index={index} />
               ))}
             </div>
           ) : (
-            <div style={{textAlign: 'center', padding: '60px', background: '#fff', borderRadius: '12px', border: '2px dashed #e2e8f0'}}>
-              <p style={{color: '#94a3b8'}}>No scheduled events.</p>
+            <div className="empty-state-card">
+              <Calendar size={40} color="rgba(255,255,255,0.2)" />
+              <p style={{color: 'rgba(255,255,255,0.6)'}}>No events scheduled in the near future.</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* 4. FEATURES */}
-      <section className="section-padding features-section">
+      {/* 4. HUB FEATURES */}
+      <section className="section-padding">
         <div className="home-container">
-          <div style={{textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px'}}>
-            <h2 style={{fontSize: '2.5rem', marginBottom: '20px', color: 'var(--siia-navy)'}}>Integrated Academic Hub</h2>
-            <p style={{color: 'var(--siia-text)', fontSize: '1.1rem'}}>Experience a modern, digital environment designed for your productivity and success.</p>
+          <div className="center-header">
+            <span className="section-tag">Student Experience</span>
+            <h2 className="section-title">A Unified Digital Workspace</h2>
+            <p className="section-desc">We've integrated the essential tools of academic life into a single, fluid experience.</p>
           </div>
 
-          <div className="features-grid">
-            <div className="feature-item">
-              <div style={{width: '60px', height: '60px', background: '#eff6ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto'}}>
-                <Calendar color="#2563eb" size={30} />
+          <div className="features-grid-v2">
+            <motion.div whileHover={{ y: -10 }} className="feature-card-v2">
+              <div className="f-icon-wrap bg-blue">
+                <Calendar size={28} />
               </div>
-              <h3>Real-time Timetables</h3>
-              <p style={{color: 'var(--siia-text)'}}>Access the most recent class schedules updated by the administration.</p>
-            </div>
-            <div className="feature-item">
-              <div style={{width: '60px', height: '60px', background: '#f5f3ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto'}}>
-                <BookOpen color="#7c3aed" size={30} />
+              <h3>Live Timetables</h3>
+              <p>Access your class schedules with real-time updates from the administration, fully responsive on any device.</p>
+            </motion.div>
+
+            <motion.div whileHover={{ y: -10 }} className="feature-card-v2">
+              <div className="f-icon-wrap bg-purple">
+                <BookOpen size={28} />
               </div>
-              <h3>Course Library</h3>
-              <p style={{color: 'var(--siia-text)'}}>Browse course modules directly from our integrated Google Drive system.</p>
-            </div>
-            <div className="feature-item">
-              <div style={{width: '60px', height: '60px', background: '#fffbeb', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto'}}>
-                <Bell color="#d97706" size={30} />
+              <h3>Digital Archives</h3>
+              <p>A centralized library of course materials, lectures, and research papers organized by semester and module.</p>
+            </motion.div>
+
+            <motion.div whileHover={{ y: -10 }} className="feature-card-v2">
+              <div className="f-icon-wrap bg-amber">
+                <Zap size={28} />
               </div>
-              <h3>Department News</h3>
-              <p style={{color: 'var(--siia-text)'}}>Stay informed with official notifications from professors and faculty.</p>
-            </div>
+              <h3>Instant Alerts</h3>
+              <p>Never miss a deadline or department update with our direct communication channel between faculty and students.</p>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* 5. EXCELLENCE */}
-      <section className="section-padding">
+      {/* 5. MISSION & EXCELLENCE */}
+      <section className="section-padding excellence-section-bg">
         <div className="home-container">
-          <div className="excellence-grid">
-            <div className="excellence-content">
-              <h2 style={{fontSize: '2.5rem', marginBottom: '30px', color: 'var(--siia-navy)', lineHeight: '1.2'}}>The Parcours d'Excellence <br/> Standard of Education</h2>
-              <div style={{display: 'flex', gap: '20px', marginBottom: '30px'}}>
-                <CheckCircle color="#2563eb" size={24} style={{marginTop: '5px'}} />
-                <div>
-                  <h4 style={{fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '5px'}}>Rigorous Selection</h4>
-                  <p style={{color: 'var(--siia-text)'}}>Only the top-tier candidates are admitted, ensuring a community of high-achievers.</p>
+          <div className="excellence-grid-v2">
+            <div className="excellence-text-content">
+              <span className="section-tag">The SIIA Standard</span>
+              <h2 className="section-title-large">Defined by Quality, Driven by Innovation</h2>
+              
+              <div className="mission-items">
+                <div className="mission-item">
+                  <div className="m-icon"><Target size={20} /></div>
+                  <div className="m-text">
+                    <h4>Industry-Ready Curriculum</h4>
+                    <p>Our courses are constantly updated to reflect the evolving needs of the global AI and Data Science markets.</p>
+                  </div>
+                </div>
+                
+                <div className="mission-item">
+                  <div className="m-icon"><ShieldCheck size={20} /></div>
+                  <div className="m-text">
+                    <h4>State Accreditation</h4>
+                    <p>As part of the FPK-USMS network, we deliver degrees recognized for their academic rigor and professional value.</p>
+                  </div>
                 </div>
               </div>
-              <div style={{display: 'flex', gap: '20px', marginBottom: '30px'}}>
-                <CheckCircle color="#2563eb" size={24} style={{marginTop: '5px'}} />
-                <div>
-                  <h4 style={{fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '5px'}}>Industry Alignment</h4>
-                  <p style={{color: 'var(--siia-text)'}}>Our curriculum is designed in partnership with industry experts in Data Science and AI.</p>
-                </div>
+              
+              <div className="excellence-action">
+                <Link to="/courses" className="btn btn-primary-outline">
+                  See Academic Program <ArrowRight size={16} />
+                </Link>
               </div>
-              <Link to="/courses" className="btn btn-primary" style={{marginTop: '20px'}}>Learn about curriculum</Link>
             </div>
-            <div className="excellence-image">
-              <img src="https://images.unsplash.com/photo-1541339907198-e08756ebafe3?auto=format&fit=crop&q=80&w=600" alt="Campus" style={{marginTop: '40px'}} />
-              <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=600" alt="Library" />
+            
+            <div className="excellence-visual-studio">
+              <div className="v-card v-card-1">
+                <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=600" alt="Work" />
+              </div>
+              <div className="v-card v-card-2">
+                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=600" alt="Work" />
+              </div>
+              <div className="v-bg-blob"></div>
             </div>
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer style={{padding: '60px 0', borderTop: '1px solid var(--siia-border)', textAlign: 'center'}}>
+      <footer className="main-footer">
         <div className="home-container">
-          <h3 style={{fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--siia-navy)', marginBottom: '10px'}}>SIIA DEPARTMENT</h3>
-          <p style={{color: '#94a3b8', fontSize: '14px'}}>© 2026 Parcours d'Excellence Information Systems & AI. All rights reserved.</p>
+          <div className="footer-grid">
+            <div className="footer-col brand-col">
+              <div className="f-logo">SIIA</div>
+              <p className="f-tagline">Forming the architects of tomorrow's intelligence.</p>
+              <div className="f-socials">
+                <a href="#" className="s-link"><Share2 size={18} /></a>
+                <a href="#" className="s-link"><Users size={18} /></a>
+                <a href="#" className="s-link"><Globe size={18} /></a>
+              </div>
+            </div>
+            
+            <div className="footer-col">
+              <h4 className="f-title">Quick Links</h4>
+              <ul className="f-links">
+                <li><Link to="/">Home Dashboard</Link></li>
+                <li><Link to="/announcements">Academic News</Link></li>
+                <li><Link to="/events">Events Calendar</Link></li>
+                <li><Link to="/courses">Course Library</Link></li>
+              </ul>
+            </div>
+            
+            <div className="footer-col">
+              <h4 className="f-title">Resources</h4>
+              <ul className="f-links">
+                <li><Link to="/timetables">Live Timetables</Link></li>
+                <li><Link to="/login">Student Portal</Link></li>
+                <li><a href="https://fpk.ac.ma" target="_blank" rel="noreferrer">FPK Official</a></li>
+                <li><a href="https://usms.ac.ma" target="_blank" rel="noreferrer">USMS Portal</a></li>
+              </ul>
+            </div>
+            
+            <div className="footer-col">
+              <h4 className="f-title">Contact Us</h4>
+              <ul className="f-contact">
+                <li><Mail size={16} /> siia.contact@usms.ma</li>
+                <li><Phone size={16} /> +212 523 490 359</li>
+                <li><MapPin size={16} /> BP 145, Khouribga Principal, 25000</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="footer-bottom">
+            <p>© 2026 Parcours d'Excellence SIIA. Faculté Polydisciplinaire de Khouribga.</p>
+            <div className="f-bottom-links">
+              <Link to="/login">Admin Login</Link>
+            </div>
+          </div>
         </div>
       </footer>
+
+      {/* Scroll to Top Button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            onClick={scrollToTop}
+            className="scroll-top-btn"
+          >
+            <ArrowUp size={20} />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
     </div>
   );

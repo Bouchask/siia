@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import eventService from '../../services/eventService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Trash2, Edit3, X, Save, Clock, 
@@ -55,9 +55,9 @@ const EventManager = () => {
 
   const fetchEvents = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/events/');
-      setEvents(res.data);
-      if (res.data.length > 0) handleSelect(res.data[0]);
+      const data = await eventService.getAll();
+      setEvents(data);
+      if (data.length > 0) handleSelect(data[0]);
     } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
@@ -94,16 +94,12 @@ const EventManager = () => {
     };
     try {
       if (selected) {
-        const res = await axios.put(`http://localhost:5000/api/events/${selected.id}`, payload, { 
-          headers: { Authorization: `Bearer ${token}` } 
-        });
-        setEvents(events.map(ev => ev.id === selected.id ? res.data : ev));
+        const data = await eventService.update(selected.id, payload);
+        setEvents(events.map(ev => ev.id === selected.id ? data : ev));
       } else {
-        const res = await axios.post('http://localhost:5000/api/events/', payload, { 
-          headers: { Authorization: `Bearer ${token}` } 
-        });
-        setEvents([res.data, ...events]);
-        setSelected(res.data);
+        const data = await eventService.create(payload);
+        setEvents([data, ...events]);
+        setSelected(data);
       }
       setIsEditing(false);
     } catch (err) { 
@@ -116,9 +112,7 @@ const EventManager = () => {
     e.stopPropagation();
     if (!window.confirm("Delete this event permanently?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/events/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await eventService.delete(id);
       const updated = events.filter(ev => ev.id !== id);
       setEvents(updated);
       if (selected?.id === id) handleSelect(updated[0] || null);

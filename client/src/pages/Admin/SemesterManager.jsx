@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import academicService from '../../services/academicService';
+import courseService from '../../services/courseService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   GraduationCap, Plus, Trash2, BookOpen, 
@@ -24,12 +25,12 @@ const SemesterManager = () => {
   const init = async () => {
     try {
       const [sRes, pRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/academic/semesters'),
-        axios.get('http://localhost:5000/api/academic/professors', { headers: { Authorization: `Bearer ${token}` } })
+        academicService.getSemesters(),
+        academicService.getProfessors()
       ]);
-      setSemesters(sRes.data);
-      setProfessors(pRes.data);
-      if (sRes.data.length > 0) setSelectedSem(sRes.data[0]);
+      setSemesters(sRes);
+      setProfessors(pRes);
+      if (sRes.length > 0) setSelectedSem(sRes[0]);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -37,8 +38,8 @@ const SemesterManager = () => {
   const handleCreateSem = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/academic/semesters', { name: newSemName }, { headers: { Authorization: `Bearer ${token}` } });
-      setSemesters([...semesters, res.data]);
+      const res = await academicService.createSemester({ name: newSemName });
+      setSemesters([...semesters, res]);
       setNewSemName('');
     } catch (err) { alert("Fail"); }
   };
@@ -47,11 +48,11 @@ const SemesterManager = () => {
     e.preventDefault();
     try {
       const payload = { ...newCourse, semester_id: selectedSem.id };
-      await axios.post('http://localhost:5000/api/academic/courses', payload, { headers: { Authorization: `Bearer ${token}` } });
+      await courseService.create(payload);
       
-      const res = await axios.get('http://localhost:5000/api/academic/semesters');
-      setSemesters(res.data);
-      const updated = res.data.find(s => s.id === selectedSem.id);
+      const res = await academicService.getSemesters();
+      setSemesters(res);
+      const updated = res.find(s => s.id === selectedSem.id);
       if (updated) setSelectedSem(updated);
       
       setNewCourse({ name: '', professor_id: '' });
@@ -61,10 +62,10 @@ const SemesterManager = () => {
   const handleDeleteCourse = async (id) => {
     if (!window.confirm("Remove this module?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/academic/courses/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-      const res = await axios.get('http://localhost:5000/api/academic/semesters');
-      setSemesters(res.data);
-      const updated = res.data.find(s => s.id === selectedSem.id);
+      await courseService.delete(id);
+      const res = await academicService.getSemesters();
+      setSemesters(res);
+      const updated = res.find(s => s.id === selectedSem.id);
       if (updated) setSelectedSem(updated);
     } catch (err) { alert("Fail"); }
   };

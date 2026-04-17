@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { API_BASE_URL } from '../../services/api';
+import timetableService from '../../services/timetableService';
+import settingService from '../../services/settingService';
+import academicService from '../../services/academicService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, Save, FileText, Link as LinkIcon, 
   Edit3, Eye, CheckCircle, AlertCircle, ChevronRight, 
   Monitor, Info, Plus, Trash2, X, Maximize2, ExternalLink
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 
 const TimetableManager = () => {
-  const { token } = useAuth();
   const [timetables, setTimetables] = useState([]);
   const [settings, setSettings] = useState({});
   const [semesters, setSemesters] = useState([]);
@@ -27,15 +28,15 @@ const TimetableManager = () => {
   const init = async () => {
     setLoading(true);
     try {
-      const [ttRes, setRes, semRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/timetables/'),
-        axios.get('http://localhost:5000/api/settings/', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:5000/api/academic/semesters')
+      const [timetablesData, settingsData, semestersData] = await Promise.all([
+        timetableService.getAll(),
+        settingService.getAll(),
+        academicService.getSemesters()
       ]);
-      setTimetables(ttRes.data);
-      setSettings(setRes.data);
-      setSemesters(semRes.data);
-      if (ttRes.data.length > 0) handleSelect(ttRes.data[0], setRes.data);
+      setTimetables(timetablesData);
+      setSettings(settingsData);
+      setSemesters(semestersData);
+      if (timetablesData.length > 0) handleSelect(timetablesData[0], settingsData);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -47,10 +48,10 @@ const TimetableManager = () => {
   };
 
   const refreshData = async () => {
-    const ttRes = await axios.get('http://localhost:5000/api/timetables/');
-    const setRes = await axios.get('http://localhost:5000/api/settings/', { headers: { Authorization: `Bearer ${token}` } });
-    setTimetables(ttRes.data);
-    setSettings(setRes.data);
+    const timetablesData = await timetableService.getAll();
+    const settingsData = await settingService.getAll();
+    setTimetables(timetablesData);
+    setSettings(settingsData);
     setTimeout(() => setStatus({ type: '', msg: '' }), 3000);
   };
 
@@ -59,9 +60,9 @@ const TimetableManager = () => {
     setStatus({ type: 'info', msg: 'Syncing Drive changes...' });
     try {
       if (editData.key) {
-        await axios.post('http://localhost:5000/api/settings/', { [editData.key]: editData.drive_id }, { headers: { Authorization: `Bearer ${token}` } });
+        await settingService.update({ [editData.key]: editData.drive_id });
       }
-      await axios.post(`http://localhost:5000/api/timetables/rename/${selected.id}`, { name: editData.name }, { headers: { Authorization: `Bearer ${token}` } });
+      await timetableService.rename(selected.id, editData.name);
       setStatus({ type: 'success', msg: 'Live timetable updated!' });
       refreshData();
     } catch (err) { setStatus({ type: 'error', msg: 'Sync failed.' }); }
@@ -71,7 +72,7 @@ const TimetableManager = () => {
     e.preventDefault();
     const fullKey = `timetable_${newTT.key_suffix.toLowerCase()}_id`;
     try {
-      await axios.post('http://localhost:5000/api/settings/', { [fullKey]: newTT.drive_id }, { headers: { Authorization: `Bearer ${token}` } });
+      await settingService.update({ [fullKey]: newTT.drive_id });
       setShowAddModal(false);
       setNewTT({ key_suffix: '', drive_id: '' });
       refreshData();
@@ -149,7 +150,7 @@ const TimetableManager = () => {
                 {selected && (
                   <iframe 
                     key={selected.id}
-                    src={`http://localhost:5000/api/timetables/proxy/${selected.id}`} 
+                    src={`${API_BASE_URL}/api/timetables/proxy/${selected.id}`} 
                     width="100%" height="100%"
                   ></iframe>
                 )}

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import courseService from '../../services/courseService';
+import settingService from '../../services/settingService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, Plus, Trash2, Link as LinkIcon, 
   Save, FileText, CheckCircle, ChevronRight, 
   MessageSquare, Users, Shield, GraduationCap,
-  Info, X, Layers, DownloadCloud, ExternalLink
+  Info, X, Layers, DownloadCloud, ExternalLink,
+  Search
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -14,7 +16,9 @@ const CourseManager = () => {
   const [courses, setCourses] = useState([]);
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('materials');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterSemester, setFilterSemester] = useState('all');
+  const [filterProfessor, setFilterProfessor] = useState('all');
 
   // Advanced Material State
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -31,16 +35,41 @@ const CourseManager = () => {
 
   const init = async () => {
     try {
-      const [cRes, setRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/academic/courses'),
-        axios.get('http://localhost:5000/api/settings/', { headers: { Authorization: `Bearer ${token}` } })
+      const [coursesData, settingsData] = await Promise.all([
+        courseService.getAll(),
+        settingService.getAll()
       ]);
-      setCourses(cRes.data);
-      setSettings(setRes.data);
-      if (cRes.data.length > 0) handleCourseSelect(cRes.data[0], setRes.data);
+      
+      // Role-based filtering
+      let availableCourses = coursesData;
+      if (user?.role === 'professor') {
+        availableCourses = availableCourses.filter(c => c.professor_id === user.id);
+      }
+      
+      setCourses(availableCourses);
+      setSettings(settingsData);
+      if (availableCourses.length > 0) handleCourseSelect(availableCourses[0], settingsData);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
+
+  const filteredCourses = courses.filter(c => {
+    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSemester = filterSemester === 'all' || c.semester_name === filterSemester;
+    const matchesProf = filterProfessor === 'all' || c.professor_name === filterProfessor;
+    return matchesSearch && matchesSemester && matchesProf;
+  });
+
+  // Grouping logic for the sidebar
+  const groupedCourses = filteredCourses.reduce((acc, course) => {
+    const sem = course.semester_name || 'Unassigned';
+    if (!acc[sem]) acc[sem] = [];
+    acc[sem].push(course);
+    return acc;
+  }, {});
+
+  const semesters = [...new Set(courses.map(c => c.semester_name))].sort();
+  const professors = [...new Set(courses.map(c => c.professor_name))].sort();
 
   const handleCourseSelect = (course, currentSettings) => {
     setSelectedCourse(course);
@@ -79,12 +108,10 @@ const CourseManager = () => {
     const payload = { [key]: JSON.stringify(materials) };
 
     try {
-      await axios.post('http://localhost:5000/api/settings/', payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await settingService.update(payload);
       setStatus({ type: 'success', msg: 'Materials updated successfully!' });
-      const setRes = await axios.get('http://localhost:5000/api/settings/', { headers: { Authorization: `Bearer ${token}` } });
-      setSettings(setRes.data);
+      const settingsData = await settingService.getAll();
+      setSettings(settingsData);
       setTimeout(() => setStatus({ type: '', msg: '' }), 3000);
     } catch (err) {
       setStatus({ type: 'error', msg: 'Publishing failed.' });
@@ -97,104 +124,143 @@ const CourseManager = () => {
     <div className="course-manager-v2">
       <header className="manager-header">
         <div>
-          <h1>Experience Designer <span className="highlight">/ Courses</span></h1>
-          <p>Curate and manage multi-part learning paths for your students.</p>
+          <h1>Studio Portfolio <span className="highlight">/ Courses</span></h1>
+          <p>{user?.role === 'admin' ? 'Universal Management Console' : `Manage learning paths for ${user?.first_name}'s assigned courses`}</p>
         </div>
-        <div className="user-profile-badge">
-          <div className="avatar">{user?.first_name?.[0]}</div>
-          <div className="info">
-            <span className="name">{user?.first_name} {user?.last_name}</span>
-            <span className="role">Senior Faculty</span>
-          </div>
+        <div className="role-indicator">
+          <Shield size={14} /> {user?.role.toUpperCase()} ACCESS
         </div>
       </header>
 
       <div className="manager-layout">
-        {/* Sidebar: Course Index */}
+        {/* Sidebar: Course Index with Filtering */}
         <aside className="course-index">
-          <div className="index-label">Academic Portfolio</div>
-          <div className="index-list">
-            {courses.map(c => (
-              <div 
-                key={c.id} 
-                onClick={() => handleCourseSelect(c, settings)}
-                className={`index-item ${selectedCourse?.id === c.id ? 'active' : ''}`}
-              >
-                <div className="item-icon"><Layers size={18} /></div>
-                <div className="item-text">
-                  <span className="title">{c.name}</span>
-                  <span className="meta">{c.semester_name} • 2026</span>
+          <div className="sidebar-controls">
+            <div className="search-pill">
+              <Search size={14} />
+              <input 
+                placeholder="Search courses..." 
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <div className="filter-group">
+              <select value={filterSemester} onChange={e => setFilterSemester(e.target.value)}>
+                <option value="all">All Semesters</option>
+                {semesters.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              {user?.role === 'admin' && (
+                <select value={filterProfessor} onChange={e => setFilterProfessor(e.target.value)}>
+                  <option value="all">All Faculty</option>
+                  {professors.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              )}
+            </div>
+          </div>
+
+          <div className="index-container">
+            {Object.entries(groupedCourses).length > 0 ? (
+              Object.entries(groupedCourses).map(([semester, items]) => (
+                <div key={semester} className="semester-group">
+                  <div className="group-label">{semester}</div>
+                  <div className="index-list">
+                    {items.map(c => (
+                      <div 
+                        key={c.id} 
+                        onClick={() => handleCourseSelect(c, settings)}
+                        className={`index-item ${selectedCourse?.id === c.id ? 'active' : ''}`}
+                      >
+                        <div className="item-text">
+                          <span className="title">{c.name}</span>
+                          <span className="meta">{c.professor_name}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                {selectedCourse?.id === c.id && <div className="active-dot" />}
+              ))
+            ) : (
+              <div className="no-results">
+                <Info size={24} />
+                <p>No courses found matching your criteria.</p>
               </div>
-            ))}
+            )}
           </div>
         </aside>
 
         {/* Main: Advanced Editor */}
         <main className="editor-canvas">
-          <div className="editor-card">
-            <div className="card-top">
-              <div className="title-area">
-                <span className="badge">{selectedCourse?.semester_name}</span>
-                <h2>{selectedCourse?.name}</h2>
-              </div>
-              <button onClick={handleSaveMaterials} className="save-btn">
-                <Save size={18} /> Publish All Changes
-              </button>
-            </div>
-
-            {status.msg && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className={`status-pill ${status.type}`}>
-                {status.msg}
-              </motion.div>
-            )}
-
-            <div className="editor-sections">
-              {/* Material Categories */}
-              {['lectures', 'tds', 'tps'].map((cat) => (
-                <div key={cat} className="category-section">
-                  <div className="section-header">
-                    <h3>{cat.toUpperCase()} <span className="count">{materials[cat].length}</span></h3>
-                    <button onClick={() => addMaterialItem(cat)} className="add-part-btn"><Plus size={14}/> Add Part</button>
-                  </div>
-
-                  <div className="items-list">
-                    <AnimatePresence>
-                      {materials[cat].map((item) => (
-                        <motion.div 
-                          key={item.id} 
-                          initial={{ opacity: 0, x: -20 }} 
-                          animate={{ opacity: 1, x: 0 }} 
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          className="material-item-row"
-                        >
-                          <div className="drag-handle"><Layers size={14} /></div>
-                          <input 
-                            value={item.title} 
-                            onChange={(e) => updateMaterialItem(cat, item.id, 'title', e.target.value)}
-                            placeholder="Part Title (e.g. Chapter 1: Intro)" 
-                            className="title-input"
-                          />
-                          <div className="id-wrap">
-                            <LinkIcon size={12} />
-                            <input 
-                              value={item.drive_id} 
-                              onChange={(e) => updateMaterialItem(cat, item.id, 'drive_id', e.target.value)}
-                              placeholder="Drive Link/ID" 
-                              className="id-input"
-                            />
-                          </div>
-                          <button onClick={() => removeMaterialItem(cat, item.id)} className="delete-btn"><X size={14}/></button>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                    {materials[cat].length === 0 && <div className="empty-category">No materials added yet.</div>}
-                  </div>
+          {selectedCourse ? (
+            <div className="editor-card">
+              <div className="card-top">
+                <div className="title-area">
+                  <span className="badge">{selectedCourse?.semester_name}</span>
+                  <h2>{selectedCourse?.name}</h2>
                 </div>
-              ))}
+                <button onClick={handleSaveMaterials} className="save-btn">
+                  <Save size={18} /> Publish All Changes
+                </button>
+              </div>
+
+              {status.msg && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className={`status-pill ${status.type}`}>
+                  {status.msg}
+                </motion.div>
+              )}
+
+              <div className="editor-sections">
+                {/* Material Categories */}
+                {['lectures', 'tds', 'tps'].map((cat) => (
+                  <div key={cat} className="category-section">
+                    <div className="section-header">
+                      <h3>{cat.toUpperCase()} <span className="count">{materials[cat].length}</span></h3>
+                      <button onClick={() => addMaterialItem(cat)} className="add-part-btn"><Plus size={14}/> Add Part</button>
+                    </div>
+
+                    <div className="items-list">
+                      <AnimatePresence>
+                        {materials[cat].map((item) => (
+                          <motion.div 
+                            key={item.id} 
+                            initial={{ opacity: 0, x: -20 }} 
+                            animate={{ opacity: 1, x: 0 }} 
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="material-item-row"
+                          >
+                            <div className="drag-handle"><Layers size={14} /></div>
+                            <input 
+                              value={item.title} 
+                              onChange={(e) => updateMaterialItem(cat, item.id, 'title', e.target.value)}
+                              placeholder="Part Title (e.g. Chapter 1: Intro)" 
+                              className="title-input"
+                            />
+                            <div className="id-wrap">
+                              <LinkIcon size={12} />
+                              <input 
+                                value={item.drive_id} 
+                                onChange={(e) => updateMaterialItem(cat, item.id, 'drive_id', e.target.value)}
+                                placeholder="Drive Link/ID" 
+                                className="id-input"
+                              />
+                            </div>
+                            <button onClick={() => removeMaterialItem(cat, item.id)} className="delete-btn"><X size={14}/></button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                      {materials[cat].length === 0 && <div className="empty-category">No materials added yet.</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="empty-canvas">
+              <BookOpen size={48} />
+              <h2>Select a course to begin</h2>
+              <p>Choose a course from the sidebar to manage its learning materials.</p>
+            </div>
+          )}
         </main>
       </div>
 
@@ -206,28 +272,41 @@ const CourseManager = () => {
         .manager-header h1 .highlight { color: #2563eb; }
         .manager-header p { color: #64748b; margin-top: 5px; font-weight: 500; }
         
-        .user-profile-badge { display: flex; align-items: center; gap: 15px; background: #fff; padding: 8px 20px 8px 8px; border-radius: 50px; border: 1px solid #e2e8f0; }
-        .avatar { width: 40px; height: 40px; background: #0f172a; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; }
-        .user-profile-badge .name { display: block; font-weight: 800; font-size: 13px; color: #1e293b; }
-        .user-profile-badge .role { display: block; font-size: 10px; font-weight: 800; color: #2563eb; text-transform: uppercase; }
+        .role-indicator { background: #f8fafc; padding: 6px 14px; border-radius: 50px; border: 1px solid #e2e8f0; color: #64748b; font-size: 10px; font-weight: 900; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; }
 
         .manager-layout { display: grid; grid-template-columns: 320px 1fr; gap: 40px; }
         
-        .course-index { background: #fff; border-radius: 24px; padding: 24px; border: 1px solid #e2e8f0; align-self: start; }
-        .index-label { font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; }
-        .index-list { display: flex; flex-direction: column; gap: 8px; }
-        .index-item { padding: 12px 16px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition: 0.2s; position: relative; }
-        .index-item:hover { background: #f8fafc; }
+        .course-index { background: #fff; border-radius: 24px; padding: 20px; border: 1px solid #e2e8f0; align-self: start; display: flex; flex-direction: column; gap: 20px; max-height: 80vh; overflow-y: auto; }
+        
+        .sidebar-controls { display: flex; flex-direction: column; gap: 12px; }
+        .search-pill { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 10px 15px; border-radius: 12px; }
+        .search-pill input { background: transparent; border: none; outline: none; font-size: 13px; font-weight: 600; width: 100%; }
+        
+        .filter-group { display: flex; flex-direction: column; gap: 8px; }
+        .filter-group select { padding: 8px 12px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 12px; font-weight: 700; color: #1e293b; background: #fff; outline: none; }
+
+        .index-container { display: flex; flex-direction: column; gap: 24px; }
+        .semester-group { display: flex; flex-direction: column; gap: 8px; }
+        .group-label { font-size: 11px; font-weight: 900; color: #2563eb; text-transform: uppercase; letter-spacing: 1px; margin-left: 10px; }
+        
+        .index-list { display: flex; flex-direction: column; gap: 4px; }
+        .index-item { padding: 10px 14px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition: 0.2s; border: 1px solid transparent; }
+        .index-item:hover { background: #f8fafc; border-color: #e2e8f0; }
         .index-item.active { background: #0f172a; color: #fff; }
-        .item-icon { width: 34px; height: 34px; background: #f1f5f9; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #64748b; }
-        .active .item-icon { background: rgba(255,255,255,0.1); color: #fff; }
-        .item-text .title { display: block; font-weight: 700; font-size: 13px; }
-        .item-text .meta { font-size: 11px; opacity: 0.6; font-weight: 600; }
-        .active-dot { position: absolute; right: 15px; width: 6px; height: 6px; background: #2563eb; border-radius: 50%; box-shadow: 0 0 10px #2563eb; }
+        
+        .item-text .title { display: block; font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+        .item-text .meta { font-size: 10px; opacity: 0.6; font-weight: 600; }
+
+        .no-results { text-align: center; padding: 40px 20px; color: #cbd5e1; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .no-results p { font-size: 12px; font-weight: 600; }
 
         .editor-canvas { display: flex; flex-direction: column; gap: 30px; }
         .editor-card { background: #fff; border-radius: 30px; border: 1px solid #e2e8f0; padding: 50px; box-shadow: 0 20px 50px rgba(0,0,0,0.02); }
         
+        .empty-canvas { background: #fff; border-radius: 30px; border: 2px dashed #e2e8f0; padding: 100px 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #94a3b8; gap: 20px; }
+        .empty-canvas h2 { color: #0f172a; font-weight: 900; margin: 0; }
+        .empty-canvas p { font-weight: 500; max-width: 300px; }
+
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
         .card-top h2 { font-size: 2rem; font-weight: 900; color: #0f172a; margin: 10px 0 0; }
         .card-top .badge { background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 900; text-transform: uppercase; }

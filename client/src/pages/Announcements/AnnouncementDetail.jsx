@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import announcementService from '../../services/announcementService';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, User, Clock, Share2, Bookmark } from 'lucide-react';
 import DOMPurify from 'dompurify';
@@ -68,8 +68,8 @@ const AnnouncementDetail = () => {
   useEffect(() => {
     const fetchAnnouncement = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/announcements/${id}`);
-        setAnnouncement(response.data);
+        const data = await announcementService.getById(id);
+        setAnnouncement(data);
       } catch (err) {
         console.error("Error fetching announcement detail:", err);
       } finally {
@@ -104,7 +104,7 @@ const AnnouncementDetail = () => {
         <div className="news-card">
           <div className="news-meta-bar">
             <div className="meta-item"><Calendar size={14}/> {new Date(announcement.created_at).toLocaleDateString()}</div>
-            <div className="meta-item"><User size={14}/> SIIA Official</div>
+            <div className="meta-item"><User size={14}/> {announcement.author_name || "SIIA Official"}</div>
           </div>
 
           <hr style={{ border: 'none', borderTop: '1px solid #f1f5f9', margin: '30px 0' }} />

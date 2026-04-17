@@ -8,7 +8,14 @@ from app.models.setting import Setting
 
 class GoogleDriveService:
     def __init__(self):
+        # Handle relative path for credentials
         self.credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+        if self.credentials_path and not os.path.isabs(self.credentials_path):
+            # Resolve relative to the server root (where run.py is)
+            # Assuming run.py is in the parent of the 'app' directory
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            self.credentials_path = os.path.join(base_dir, self.credentials_path)
+            
         self.scopes = ['https://www.googleapis.com/auth/drive'] # Upgraded to full drive scope for write access
         self.service = self._authenticate()
 

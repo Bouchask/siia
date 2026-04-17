@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import announcementService from '../../services/announcementService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Trash2, Edit3, X, Save, Clock, 
   Search, FileText, Image as ImageIcon, ExternalLink,
   ChevronRight, LayoutDashboard, Settings
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import CustomBlockEditor from '../../components/CustomBlockEditor';
 import { convertDriveLink } from '../../components/CustomBlockEditor/utils';
 import DOMPurify from 'dompurify';
@@ -37,7 +36,6 @@ const renderPreviewHtml = (blocks) => {
 };
 
 const AnnouncementManager = () => {
-  const { token } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
   const [selected, setSelected] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -52,9 +50,9 @@ const AnnouncementManager = () => {
 
   const fetchAnnouncements = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/announcements/');
-      setAnnouncements(res.data);
-      if (res.data.length > 0) handleSelect(res.data[0]);
+      const data = await announcementService.getAll();
+      setAnnouncements(data);
+      if (data.length > 0) handleSelect(data[0]);
     } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
@@ -77,12 +75,12 @@ const AnnouncementManager = () => {
     const payload = { title, content: JSON.stringify(blocks), image_url: heroImage };
     try {
       if (selected) {
-        const res = await axios.put(`http://localhost:5000/api/announcements/${selected.id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
-        setAnnouncements(announcements.map(a => a.id === selected.id ? res.data : a));
+        const data = await announcementService.update(selected.id, payload);
+        setAnnouncements(announcements.map(a => a.id === selected.id ? data : a));
       } else {
-        const res = await axios.post('http://localhost:5000/api/announcements/', payload, { headers: { Authorization: `Bearer ${token}` } });
-        setAnnouncements([res.data, ...announcements]);
-        setSelected(res.data);
+        const data = await announcementService.create(payload);
+        setAnnouncements([data, ...announcements]);
+        setSelected(data);
       }
       setIsEditing(false);
     } catch (err) { alert("Save failed."); }

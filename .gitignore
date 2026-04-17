@@ -1,0 +1,28 @@
+# Build and Dependencies
+node_modules/
+dist/
+build/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# Sensitive Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Google Credentials (specifically for the server)
+server/*.json
+!server/requirements.txt
+!client/package.json
+!client/package-lock.json
+
+# Logs
+logs
+*.log
+
+# Editor/OS Files
+.vscode/
+.idea/
+.DS_Store
