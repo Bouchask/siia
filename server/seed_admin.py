@@ -8,6 +8,9 @@ def seed_admin():
     """
     app = create_app()
     with app.app_context():
+        # Ensure tables exist (especially for a new Aiven DB)
+        db.create_all()
+        
         email = "admin@siia.com"
         
         # 1. Check if admin already exists
