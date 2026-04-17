@@ -276,7 +276,7 @@ const Home = () => {
                   <div className="m-icon"><ShieldCheck size={20} /></div>
                   <div className="m-text">
                     <h4>State Accreditation</h4>
-                    <p>As part of the FPK-USMS network, we deliver degrees recognized for their academic rigor and professional value.</p>
+                    <p>As part of the FP-USMS network, we deliver degrees recognized for their academic rigor and professional value.</p>
                   </div>
                 </div>
               </div>
@@ -330,7 +330,7 @@ const Home = () => {
               <ul className="f-links">
                 <li><Link to="/timetables">Live Timetables</Link></li>
                 <li><Link to="/login">Student Portal</Link></li>
-                <li><a href="https://fpk.ac.ma" target="_blank" rel="noreferrer">FPK Official</a></li>
+                <li><a href="https://fpk.ac.ma" target="_blank" rel="noreferrer">FP Official</a></li>
                 <li><a href="https://usms.ac.ma" target="_blank" rel="noreferrer">USMS Portal</a></li>
               </ul>
             </div>
