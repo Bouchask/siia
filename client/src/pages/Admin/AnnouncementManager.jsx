@@ -93,6 +93,29 @@ const AnnouncementManager = () => {
     } catch (err) { alert("Save failed."); }
   };
 
+  const handleDelete = async () => {
+    if (!selected) return;
+    if (!window.confirm("Permanently delete this story from the library?")) return;
+    
+    try {
+      await announcementService.delete(selected.id);
+      const remaining = announcements.filter(a => a.id !== selected.id);
+      setAnnouncements(remaining);
+      if (remaining.length > 0) {
+        handleSelect(remaining[0]);
+      } else {
+        setSelected(null);
+        setTitle('');
+        setBlocks([]);
+        setHeroImage('');
+      }
+      alert("Story deleted successfully.");
+    } catch (err) {
+      console.error(err);
+      alert("Deletion failed.");
+    }
+  };
+
   if (loading) return <div className="studio-init">Preparing Experience Studio...</div>;
 
   return (
@@ -147,6 +170,7 @@ const AnnouncementManager = () => {
               </>
             ) : (
               <>
+                <button onClick={handleDelete} className="act-btn glass" style={{ borderColor: '#ef4444', color: '#ef4444' }}><Trash2 size={16}/> Delete Story</button>
                 <button onClick={() => window.open(`/news/${selected?.id}`, '_blank')} className="act-btn glass"><ExternalLink size={16}/> Live Preview</button>
                 <button onClick={() => setIsEditing(true)} className="act-btn primary"><Edit3 size={16}/> Edit Experience</button>
               </>
