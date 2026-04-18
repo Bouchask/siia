@@ -81,5 +81,9 @@ Sensitive data (API keys, DB credentials, JWT secrets) are **never** committed t
 
 ---
 
-## 👨‍💻 Developed by Yahya Bouchak
+## 👨‍💻 Developed by
+**Yahya Bouchak**  
 *Information Systems & AI (SIIA) Excellence Track*
+
+**Ilyass Abidi**  
+*Bachelor SIIA Student (Information System & IA)*

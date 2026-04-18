@@ -108,10 +108,14 @@ This project is optimized for **Render.com** using the included `render.yaml` (I
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Authors
 **Yahya Bouchak**  
 *Information Systems & AI (SIIA) Master's Student*  
 *Full Stack Developer & AI Enthusiast*
+
+**Ilyass Abidi**  
+*Bachelor SIIA Student (Information System & IA)*  
+*Software Engineering & AI Enthusiast*
 
 ---
 *Developed with a focus on engineering standards, security, and clean architecture.*
