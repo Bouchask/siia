@@ -332,7 +332,44 @@ const TimetableManager = () => {
         .iframe-container { flex: 1; background: #f1f5f9; }
         .iframe-container iframe { border: none; }
 
-        .studio-init { height: 100vh; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #2563eb; letter-spacing: 2px; }
+        .studio-init { 
+          height: 100vh; 
+          display: flex; 
+          flex-direction: column;
+          align-items: center; 
+          justify-content: center; 
+          gap: 24px;
+          background: #f8fafc;
+        }
+        .init-spinner {
+          width: 48px;
+          height: 48px;
+          border: 4px solid #e2e8f0;
+          border-top: 4px solid #2563eb;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        .init-text {
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .init-text span {
+          font-weight: 900; 
+          color: #0f172a; 
+          letter-spacing: -0.5px;
+          font-size: 1.2rem;
+          text-transform: uppercase;
+        }
+        .init-text small {
+          color: #64748b;
+          font-weight: 600;
+          font-size: 14px;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
       `}</style>
     </div>
   );

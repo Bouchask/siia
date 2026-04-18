@@ -165,10 +165,72 @@ const Timetables = () => {
       </div>
 
       <style>{`
-        @keyframes pulse {
-          0% { opacity: 1; }
-          50% { opacity: 0.5; }
-          100% { opacity: 1; }
+        .sync-loading-container {
+          padding-bottom: 60px;
+        }
+        .sync-status-bar {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 32px;
+          padding: 12px 20px;
+          background: #fff;
+          border-radius: 12px;
+          border: 1px solid var(--siia-border);
+          width: fit-content;
+          color: var(--siia-blue);
+          font-weight: 800;
+          font-size: 13px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        .sync-spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid var(--siia-blue-light);
+          border-top: 2px solid var(--siia-blue);
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+        .skeleton-card {
+          background: #fff;
+          padding: 32px;
+          border-radius: 24px;
+          border: 1px solid var(--siia-border);
+          display: flex;
+          align-items: center;
+          gap: 20px;
+        }
+        .skeleton-icon {
+          width: 60px;
+          height: 60px;
+          background: #f1f5f9;
+          border-radius: 16px;
+          animation: skeleton-pulse 1.5s infinite;
+        }
+        .skeleton-content {
+          flex: 1;
+        }
+        .skeleton-line {
+          height: 12px;
+          background: #f1f5f9;
+          border-radius: 4px;
+          animation: skeleton-pulse 1.5s infinite;
+        }
+        .skeleton-line.title {
+          width: 60%;
+          margin-bottom: 8px;
+          height: 16px;
+        }
+        .skeleton-line.subtitle {
+          width: 40%;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes skeleton-pulse {
+          0% { background-color: #f1f5f9; }
+          50% { background-color: #e2e8f0; }
+          100% { background-color: #f1f5f9; }
         }
       `}</style>
     </div>
