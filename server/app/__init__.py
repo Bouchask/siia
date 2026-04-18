@@ -36,6 +36,23 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     jwt.init_app(app)
 
+    # Health Check and DB status
+    @app.route('/api/health')
+    def health_check():
+        try:
+            # Check DB connection
+            from sqlalchemy import text
+            db.session.execute(text('SELECT 1'))
+            return {"status": "healthy", "database": "connected"}, 200
+        except Exception as e:
+            return {"status": "unhealthy", "database": "disconnected", "error": str(e)}, 500
+
+    @app.before_request
+    def check_db():
+        # This will fail on the first request if the DB is misconfigured
+        if not app.config.get('SQLALCHEMY_DATABASE_URI'):
+            return {"error": "DATABASE_URL is not configured properly!"}, 500
+
     # Import models here to ensure they are registered with SQLAlchemy
     from app.models.user import User
     from app.models.announcement import Announcement
@@ -63,5 +80,14 @@ def create_app(config_class=Config):
     app.register_blueprint(events_bp, url_prefix='/api/events')
     app.register_blueprint(settings_bp, url_prefix='/api/settings')
     app.register_blueprint(academic_bp, url_prefix='/api/academic')
+
+    # Global Database Error Handler
+    from sqlalchemy.exc import SQLAlchemyError
+    @app.errorhandler(SQLAlchemyError)
+    def handle_db_error(error):
+        return {
+            "error": "Database error occurred. Please ensure your database is reachable and configured correctly.",
+            "details": str(error) if app.debug else "Database connection failure."
+        }, 500
 
     return app

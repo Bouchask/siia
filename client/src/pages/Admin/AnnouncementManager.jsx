@@ -90,7 +90,12 @@ const AnnouncementManager = () => {
         setSelected(data);
       }
       setIsEditing(false);
-    } catch (err) { alert("Save failed."); }
+      alert("Changes saved successfully!");
+    } catch (err) { 
+      console.error("Save error:", err);
+      const msg = err.response?.data?.error || err.response?.data?.details || err.message || "Save failed.";
+      alert(`Save failed: ${msg}`);
+    }
   };
 
   const handleDelete = async () => {
@@ -111,8 +116,9 @@ const AnnouncementManager = () => {
       }
       alert("Story deleted successfully.");
     } catch (err) {
-      console.error(err);
-      alert("Deletion failed.");
+      console.error("Delete error:", err);
+      const msg = err.response?.data?.error || err.message || "Deletion failed.";
+      alert(`Deletion failed: ${msg}`);
     }
   };
 

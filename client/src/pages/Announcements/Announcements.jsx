@@ -9,6 +9,7 @@ import '../Home/Home.css';
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchAnnouncements();
@@ -17,10 +18,12 @@ const Announcements = () => {
 
   const fetchAnnouncements = async () => {
     try {
+      setError(null);
       const data = await announcementService.getAll();
       setAnnouncements(data);
-    } catch (error) {
-      console.error("Error fetching announcements:", error);
+    } catch (err) {
+      console.error("Error fetching announcements:", err);
+      setError(err.response?.data?.error || err.message || "Failed to load announcements.");
     } finally {
       setLoading(false);
     }
@@ -65,6 +68,32 @@ const Announcements = () => {
               <div key={i} style={{ height: '500px', background: '#fff', borderRadius: '24px', animation: 'pulse 1.5s infinite' }}></div>
             ))}
           </div>
+        ) : error ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            style={{ 
+              textAlign: 'center', 
+              padding: '60px 40px', 
+              background: '#fff1f2', 
+              borderRadius: '32px', 
+              border: '1px solid #fecdd3',
+              marginTop: '40px'
+            }}
+          >
+            <div style={{ width: '80px', height: '80px', background: '#ffe4e6', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: '#e11d48' }}>
+              <Info size={40} />
+            </div>
+            <h3 style={{ fontSize: '1.5rem', color: '#9f1239', fontWeight: '900', marginBottom: '12px' }}>System Connectivity Issue</h3>
+            <p style={{ color: '#be123c', fontSize: '1rem', maxWidth: '500px', margin: '0 auto 32px' }}>
+              We encountered an error while trying to fetch the latest announcements. This is likely a temporary database connection issue.
+              <br/><br/>
+              <code style={{ fontSize: '12px', opacity: 0.8 }}>{error}</code>
+            </p>
+            <button onClick={fetchAnnouncements} className="btn btn-primary" style={{ background: '#e11d48' }}>
+              Retry Connection
+            </button>
+          </motion.div>
         ) : announcements.length > 0 ? (
           <div className="announcement-grid" style={{ paddingBottom: '100px' }}>
             {announcements
