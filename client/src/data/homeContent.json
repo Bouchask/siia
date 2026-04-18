@@ -1,24 +1,24 @@
 {
   "hero": {
-    "badge": "Academic Excellence 2026",
-    "title": "Engineering the Next Era of AI",
-    "subtitle": "Welcome to SIIA—where rigorous academic standards meet the cutting edge of Information Systems and Artificial Intelligence.",
+    "badge": "Excellence Track - FPK",
+    "title": "Information Systems and Artificial Intelligence",
+    "subtitle": "Elite training at the Polydisciplinary Faculty of Khouribga (USMS) dedicated to future experts in Big Data, Cloud, and AI.",
     "floatingCard": {
-      "label": "Type de Formation",
-      "value": "Parcours d'Excellence"
+      "label": "Institution",
+      "value": "FP Khouribga"
     },
     "stats": [
       {
-        "number": "300+",
-        "label": "Active Students"
+        "number": "150+",
+        "label": "Admitted Students"
       },
       {
-        "number": "12+",
-        "label": "Expert Faculty"
+        "number": "22",
+        "label": "Excellence Modules"
       },
       {
-        "number": "98%",
-        "label": "Career Success"
+        "number": "100%",
+        "label": "Digital Immersion"
       }
     ]
   }

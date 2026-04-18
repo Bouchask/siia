@@ -19,3 +19,14 @@ def update_settings():
     for key, value in data.items():
         Setting.set(key, value)
     return jsonify({"message": "Settings updated successfully"}), 200
+
+@settings_bp.route('/migrate', methods=['POST'])
+@jwt_required()
+@requires_role('admin')
+def run_migrations():
+    try:
+        from flask_migrate import upgrade
+        upgrade()
+        return jsonify({"message": "Database schema synchronized successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

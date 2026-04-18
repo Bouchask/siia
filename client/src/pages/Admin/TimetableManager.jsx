@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../../services/api';
+import api, { API_BASE_URL } from '../../services/api';
 import timetableService from '../../services/timetableService';
 import settingService from '../../services/settingService';
 import academicService from '../../services/academicService';
@@ -136,9 +136,24 @@ const TimetableManager = () => {
           <h1>Schedule Workspace</h1>
           <p>Link and organize interactive PDF timetables for the student body.</p>
         </div>
-        <button onClick={() => setShowAddModal(true)} className="tt-add-btn">
-          <Plus size={18} /> New Schedule Association
-        </button>
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <button 
+            onClick={async () => {
+              if(!window.confirm("Synchronize database schema to support large course lists?")) return;
+              try {
+                const res = await api.post('/api/settings/migrate');
+                alert(res.data.message);
+              } catch(e) { alert("Sync failed: " + (e.response?.data?.error || e.message)); }
+            }}
+            className="tt-add-btn" 
+            style={{ background: '#0f172a' }}
+          >
+            <Layers size={18} /> Sync DB Schema
+          </button>
+          <button onClick={() => setShowAddModal(true)} className="tt-add-btn">
+            <Plus size={18} /> New Schedule Association
+          </button>
+        </div>
       </header>
 
       <div className="tt-layout">

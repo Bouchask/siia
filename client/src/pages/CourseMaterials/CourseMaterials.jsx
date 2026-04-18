@@ -43,7 +43,18 @@ const CourseMaterials = () => {
   const getCourseMaterials = (courseId) => {
     const raw = settings[`course_${courseId}_data`];
     if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
+    try { 
+      const data = JSON.parse(raw);
+      // Support shortened format (l=lectures, d=tds, p=tps)
+      if (data.l || data.d || data.p) {
+        return {
+          lectures: (data.l || []).map((i, idx) => ({ id: `l-${idx}`, title: i.t, drive_id: i.i })),
+          tds: (data.d || []).map((i, idx) => ({ id: `d-${idx}`, title: i.t, drive_id: i.i })),
+          tps: (data.p || []).map((i, idx) => ({ id: `p-${idx}`, title: i.t, drive_id: i.i }))
+        };
+      }
+      return data; 
+    } catch { return null; }
   };
 
   const handleSemesterClick = (sem) => {
@@ -67,7 +78,7 @@ const CourseMaterials = () => {
   if (loading) return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--siia-bg)' }}>
        <div className="loader-spiral" style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: 'var(--siia-blue)', borderRadius: '50%', animation: 'spin 1s infinite linear' }}></div>
-       <p style={{ marginTop: '20px', fontWeight: '800', color: 'var(--siia-blue)', letterSpacing: '1px' }}>SYNCHRONIZING LIBRARY...</p>
+       <p style={{ marginTop: '20px', fontWeight: '800', color: 'var(--siia-blue)', letterSpacing: '1px' }}>SYNCHRONIZING DIGITAL ARCHIVES...</p>
     </div>
   );
 
@@ -214,7 +225,7 @@ const CourseMaterials = () => {
                                   <div key={cat} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                       <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--siia-text-light)' }}>
-                                        {cat === 'lectures' ? 'Lectures' : cat === 'tds' ? 'Travaux Dirigés' : 'Travaux Pratiques'}
+                                        {cat === 'lectures' ? 'Course Lectures' : cat === 'tds' ? 'Tutorial Sessions (TD)' : 'Practical Work (TP)'}
                                       </h4>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

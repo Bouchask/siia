@@ -94,7 +94,10 @@ const Home = () => {
                   {hero.badge}
                 </span>
               </div>
-              <h1 className="hero-title">Engineering the <br/> <span className="text-gradient">Next Era</span> of AI</h1>
+              <h1 className="hero-title">
+                {hero.title.split(' ').slice(0, -2).join(' ')} <br/>
+                <span className="text-gradient">{hero.title.split(' ').slice(-2).join(' ')}</span>
+              </h1>
               <p className="hero-subtitle">
                 {hero.subtitle}
               </p>
@@ -218,38 +221,38 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 4. HUB FEATURES */}
+      {/* 4. PREREQUISITES SECTION */}
       <section className="section-padding">
         <div className="home-container">
           <div className="center-header">
-            <span className="section-tag">Student Experience</span>
-            <h2 className="section-title">A Unified Digital Workspace</h2>
-            <p className="section-desc">We've integrated the essential tools of academic life into a single, fluid experience.</p>
+            <span className="section-tag">Admission & Profile</span>
+            <h2 className="section-title">SIIA Program Prerequisites</h2>
+            <p className="section-desc">To join our excellence track, a solid mastery of the SMI (Bac+2) cycle fundamentals is essential.</p>
           </div>
 
           <div className="features-grid-v2">
             <motion.div whileHover={{ y: -10 }} className="feature-card-v2">
               <div className="f-icon-wrap bg-blue">
-                <Calendar size={28} />
+                <Target size={28} />
               </div>
-              <h3>Live Timetables</h3>
-              <p>Access your class schedules with real-time updates from the administration, fully responsive on any device.</p>
+              <h3>Advanced Programming</h3>
+              <p>Mastery of fundamental languages (C/C++), object-oriented programming (Java), and automation scripts in Python.</p>
             </motion.div>
 
             <motion.div whileHover={{ y: -10 }} className="feature-card-v2">
               <div className="f-icon-wrap bg-purple">
-                <BookOpen size={28} />
+                <Globe size={28} />
               </div>
-              <h3>Digital Archives</h3>
-              <p>A centralized library of course materials, lectures, and research papers organized by semester and module.</p>
+              <h3>Systems & Networks</h3>
+              <p>In-depth understanding of Linux environments, system administration, and fundamental network architectures.</p>
             </motion.div>
 
             <motion.div whileHover={{ y: -10 }} className="feature-card-v2">
               <div className="f-icon-wrap bg-amber">
-                <Zap size={28} />
+                <ShieldCheck size={28} />
               </div>
-              <h3>Instant Alerts</h3>
-              <p>Never miss a deadline or department update with our direct communication channel between faculty and students.</p>
+              <h3>Algorithms & DB</h3>
+              <p>Strong foundation in data structures, complex algorithms, and relational database design (SQL).</p>
             </motion.div>
           </div>
         </div>
@@ -346,7 +349,7 @@ const Home = () => {
           </div>
           
           <div className="footer-bottom">
-            <p>© 2026 Parcours d'Excellence SIIA. Faculté Polydisciplinaire de Khouribga.</p>
+            <p>© 2026 SIIA Excellence Track. Polydisciplinary Faculty of Khouribga.</p>
             <div className="f-bottom-links">
               <Link to="/login">Admin Login</Link>
             </div>

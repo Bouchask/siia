@@ -4,7 +4,7 @@ class Setting(db.Model):
     __tablename__ = 'settings'
 
     key = db.Column(db.String(50), primary_key=True)
-    value = db.Column(db.String(500), nullable=False)
+    value = db.Column(db.Text, nullable=False)
 
     @staticmethod
     def get(key, default=None):

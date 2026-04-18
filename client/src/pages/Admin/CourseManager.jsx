@@ -71,17 +71,39 @@ const CourseManager = () => {
   const semesters = [...new Set(courses.map(c => c.semester_name))].sort();
   const professors = [...new Set(courses.map(c => c.professor_name))].sort();
 
+  // Utility to compress JSON data to fit in small DB columns
+  const shortenMaterials = (data) => {
+    const short = { l: [], d: [], p: [] }; // l=lectures, d=tds, p=tps
+    data.lectures.forEach(i => short.l.push({ t: i.title, i: i.drive_id }));
+    data.tds.forEach(i => short.d.push({ t: i.title, i: i.drive_id }));
+    data.tps.forEach(i => short.p.push({ t: i.title, i: i.drive_id }));
+    return JSON.stringify(short);
+  };
+
+  const expandMaterials = (raw) => {
+    try {
+      const data = JSON.parse(raw);
+      // Support both old long format and new short format
+      if (data.l || data.d || data.p) {
+        return {
+          lectures: (data.l || []).map((i, idx) => ({ id: idx, title: i.t, drive_id: i.i })),
+          tds: (data.d || []).map((i, idx) => ({ id: idx, title: i.t, drive_id: i.i })),
+          tps: (data.p || []).map((i, idx) => ({ id: idx, title: i.t, drive_id: i.i }))
+        };
+      }
+      return data; // Return as is if it's the old format
+    } catch (e) {
+      return { lectures: [], tds: [], tps: [] };
+    }
+  };
+
   const handleCourseSelect = (course, currentSettings) => {
     setSelectedCourse(course);
     const key = `course_${course.id}_data`;
-    try {
-      const rawData = currentSettings[key];
-      if (rawData) {
-        setMaterials(JSON.parse(rawData));
-      } else {
-        setMaterials({ lectures: [], tds: [], tps: [] });
-      }
-    } catch (e) {
+    const rawData = currentSettings[key];
+    if (rawData) {
+      setMaterials(expandMaterials(rawData));
+    } else {
       setMaterials({ lectures: [], tds: [], tps: [] });
     }
   };
@@ -105,7 +127,10 @@ const CourseManager = () => {
   const handleSaveMaterials = async () => {
     setStatus({ type: 'info', msg: 'Publishing library updates...' });
     const key = `course_${selectedCourse.id}_data`;
-    const payload = { [key]: JSON.stringify(materials) };
+    
+    // COMPRESSION: Use shortenMaterials to fit more items in DB
+    const compressedData = shortenMaterials(materials);
+    const payload = { [key]: compressedData };
 
     try {
       await settingService.update(payload);
