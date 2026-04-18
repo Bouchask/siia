@@ -21,8 +21,29 @@ class GoogleDriveService:
         self.service = self._authenticate()
 
     def _authenticate(self):
+        # 1. Check for raw JSON string (Best for Vercel/Heroku environment variables)
+        json_content = os.getenv('GOOGLE_CREDENTIALS_JSON')
+        if json_content:
+            try:
+                # If the string is double-escaped (common in some CI/CD), fix it
+                if json_content.startswith('"') and json_content.endswith('"'):
+                    json_content = json_content[1:-1].replace('\\"', '"')
+                
+                info = json.loads(json_content)
+                creds = service_account.Credentials.from_service_account_info(
+                    info, scopes=self.scopes
+                )
+                self.service_account_email = creds.service_account_email
+                return build('drive', 'v3', credentials=creds)
+            except Exception as e:
+                self.error_message = f"Auth Error (JSON String): {str(e)}"
+                print(f"CRITICAL: {self.error_message}")
+                # Fall through to check file path if string auth fails
+
+        # 2. Check for traditional file path
         if not self.credentials_path:
-            self.error_message = "GOOGLE_APPLICATION_CREDENTIALS environment variable is NOT SET."
+            if not self.error_message:
+                self.error_message = "Neither GOOGLE_CREDENTIALS_JSON nor GOOGLE_APPLICATION_CREDENTIALS is set."
             print(f"CRITICAL: {self.error_message}")
             return None
             
@@ -38,7 +59,7 @@ class GoogleDriveService:
             self.service_account_email = creds.service_account_email
             return build('drive', 'v3', credentials=creds)
         except Exception as e:
-            self.error_message = f"Auth Error: {str(e)}"
+            self.error_message = f"Auth Error (File): {str(e)}"
             print(f"CRITICAL: {self.error_message}")
             return None
 

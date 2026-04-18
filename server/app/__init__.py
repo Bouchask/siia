@@ -43,7 +43,15 @@ def create_app(config_class=Config):
             # Check DB connection
             from sqlalchemy import text
             db.session.execute(text('SELECT 1'))
-            return {"status": "healthy", "database": "connected"}, 200
+            
+            # Check for Google Credentials
+            google_env_exists = os.getenv('GOOGLE_CREDENTIALS_JSON') is not None
+            
+            return {
+                "status": "healthy", 
+                "database": "connected",
+                "google_credentials_detected": google_env_exists
+            }, 200
         except Exception as e:
             return {"status": "unhealthy", "database": "disconnected", "error": str(e)}, 500
 
