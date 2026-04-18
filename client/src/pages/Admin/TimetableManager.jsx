@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, Save, FileText, Link as LinkIcon, 
   Edit3, Eye, CheckCircle, AlertCircle, ChevronRight, 
-  Monitor, Info, Plus, Trash2, X, Maximize2, ExternalLink
+  Monitor, Info, Plus, Trash2, X, Maximize2, ExternalLink,
+  Layers
 } from 'lucide-react';
 
 const TimetableManager = () => {

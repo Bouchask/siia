@@ -124,6 +124,24 @@ const CourseManager = () => {
     setMaterials({ ...materials, [category]: materials[category].filter(i => i.id !== id) });
   };
 
+  const handleDeleteCourse = async (id, e) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to permanently delete this course and all its material associations?")) return;
+    
+    try {
+      await courseService.delete(id);
+      const remaining = courses.filter(c => c.id !== id);
+      setCourses(remaining);
+      if (selectedCourse?.id === id) {
+        if (remaining.length > 0) handleCourseSelect(remaining[0], settings);
+        else setSelectedCourse(null);
+      }
+      alert("Course deleted successfully.");
+    } catch (err) {
+      alert("Delete failed: " + (err.response?.data?.error || err.message));
+    }
+  };
+
   const handleSaveMaterials = async () => {
     setStatus({ type: 'info', msg: 'Publishing library updates...' });
     const key = `course_${selectedCourse.id}_data`;
@@ -200,6 +218,15 @@ const CourseManager = () => {
                           <span className="title">{c.name}</span>
                           <span className="meta">{c.professor_name}</span>
                         </div>
+                        {user?.role === 'admin' && (
+                          <button 
+                            className="course-del-btn" 
+                            onClick={(e) => handleDeleteCourse(c.id, e)}
+                            title="Delete Course"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -319,6 +346,13 @@ const CourseManager = () => {
         .index-item:hover { background: #f8fafc; border-color: #e2e8f0; }
         .index-item.active { background: #0f172a; color: #fff; }
         
+        .course-del-btn { background: none; border: none; color: #cbd5e1; cursor: pointer; padding: 5px; opacity: 0; transition: 0.2s; }
+        .index-item:hover .course-del-btn { opacity: 1; }
+        .course-del-btn:hover { color: #ef4444; }
+        .active .course-del-btn { color: #64748b; }
+        .active .course-del-btn:hover { color: #f87171; }
+        
+        .item-text { flex: 1; }
         .item-text .title { display: block; font-weight: 700; font-size: 13px; margin-bottom: 2px; }
         .item-text .meta { font-size: 10px; opacity: 0.6; font-weight: 600; }
 
