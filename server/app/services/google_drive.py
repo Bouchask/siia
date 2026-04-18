@@ -20,8 +20,14 @@ class GoogleDriveService:
         self.service = self._authenticate()
 
     def _authenticate(self):
-        if not self.credentials_path or not os.path.exists(self.credentials_path):
+        if not self.credentials_path:
+            print("CRITICAL: GOOGLE_APPLICATION_CREDENTIALS environment variable is NOT SET.")
             return None
+            
+        if not os.path.exists(self.credentials_path):
+            print(f"CRITICAL: Google Credentials file NOT FOUND at: {os.path.abspath(self.credentials_path)}")
+            return None
+            
         try:
             creds = service_account.Credentials.from_service_account_file(
                 self.credentials_path, scopes=self.scopes
