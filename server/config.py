@@ -8,20 +8,29 @@ class Config:
     # Database Configuration
     db_url = os.environ.get('DATABASE_URL')
     
-    if db_url and db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
-    
-    # Add SSL requirement for PostgreSQL in production (Aiven/Heroku/Render requirement)
-    if db_url and "postgresql" in db_url and "sslmode=" not in db_url:
-        db_url += ("?" if "?" not in db_url else "&") + "sslmode=require"
+    if db_url:
+        # 1. Fix 'postgres://' to 'postgresql://' for SQLAlchemy 1.4+
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        
+        # 2. Force Aiven-compatible SSL parameters
+        if "postgresql" in db_url:
+            if "sslmode=" not in db_url:
+                db_url += ("?" if "?" not in db_url else "&") + "sslmode=require"
     
     SQLALCHEMY_DATABASE_URI = db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Optimizations for production
+    # 3. Aiven/Vercel Connection Stability
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
-        "pool_recycle": 3600,
+        "pool_recycle": 300, # Shorter recycle for serverless
+        "pool_size": 10,
+        "max_overflow": 20,
+        "connect_args": {
+            "sslmode": "require",
+            "connect_timeout": 10
+        }
     }
     
     # Security Configuration
