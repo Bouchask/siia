@@ -35,6 +35,8 @@ def proxy_file(file_id):
 def get_service_account():
     try:
         service = GoogleDriveService()
+        if not service.service:
+            return jsonify({"error": f"Google Drive Service not configured: {service.error_message or 'Unknown error'}"}), 500
         if hasattr(service, 'service_account_email'):
             return jsonify({"email": service.service_account_email}), 200
         return jsonify({"error": "Service account not initialized"}), 500
@@ -48,7 +50,7 @@ def check_permissions(file_id):
     try:
         service = GoogleDriveService()
         if not service.service:
-            return jsonify({"error": "Google Drive Service not configured"}), 500
+            return jsonify({"error": f"Google Drive Service not configured: {service.error_message or 'Unknown error'}"}), 500
         
         # Try to get metadata with write fields
         file_data = service.service.files().get(

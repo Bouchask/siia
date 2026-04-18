@@ -10,33 +10,36 @@ class GoogleDriveService:
     def __init__(self):
         # Handle relative path for credentials
         self.credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+        self.error_message = None
+        
         if self.credentials_path and not os.path.isabs(self.credentials_path):
             # Resolve relative to the server root (where run.py is)
-            # Assuming run.py is in the parent of the 'app' directory
             base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             self.credentials_path = os.path.join(base_dir, self.credentials_path)
             
-        self.scopes = ['https://www.googleapis.com/auth/drive'] # Upgraded to full drive scope for write access
+        self.scopes = ['https://www.googleapis.com/auth/drive'] 
         self.service = self._authenticate()
 
     def _authenticate(self):
         if not self.credentials_path:
-            print("CRITICAL: GOOGLE_APPLICATION_CREDENTIALS environment variable is NOT SET.")
+            self.error_message = "GOOGLE_APPLICATION_CREDENTIALS environment variable is NOT SET."
+            print(f"CRITICAL: {self.error_message}")
             return None
             
         if not os.path.exists(self.credentials_path):
-            print(f"CRITICAL: Google Credentials file NOT FOUND at: {os.path.abspath(self.credentials_path)}")
+            self.error_message = f"Google Credentials file NOT FOUND at: {os.path.abspath(self.credentials_path)}"
+            print(f"CRITICAL: {self.error_message}")
             return None
             
         try:
             creds = service_account.Credentials.from_service_account_file(
                 self.credentials_path, scopes=self.scopes
             )
-            # Store the email to expose it to the admin panel for permission guidance
             self.service_account_email = creds.service_account_email
             return build('drive', 'v3', credentials=creds)
         except Exception as e:
-            print(f"Auth Error: {e}")
+            self.error_message = f"Auth Error: {str(e)}"
+            print(f"CRITICAL: {self.error_message}")
             return None
 
     def get_timetables(self):
