@@ -29,6 +29,41 @@ def proxy_file(file_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@timetables_bp.route('/service-account', methods=['GET'])
+@jwt_required()
+@requires_role('admin')
+def get_service_account():
+    try:
+        service = GoogleDriveService()
+        if hasattr(service, 'service_account_email'):
+            return jsonify({"email": service.service_account_email}), 200
+        return jsonify({"error": "Service account not initialized"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@timetables_bp.route('/check-permissions/<file_id>', methods=['GET'])
+@jwt_required()
+@requires_role('admin')
+def check_permissions(file_id):
+    try:
+        service = GoogleDriveService()
+        if not service.service:
+            return jsonify({"error": "Google Drive Service not configured"}), 500
+        
+        # Try to get metadata with write fields
+        file_data = service.service.files().get(
+            fileId=file_id, 
+            fields="id, name, capabilities(canEdit, canRename)"
+        ).execute()
+        
+        return jsonify({
+            "status": "success",
+            "name": file_data.get('name'),
+            "can_edit": file_data.get('capabilities', {}).get('canEdit', False)
+        }), 200
+    except Exception as e:
+        return jsonify({"error": f"Access Denied: {str(e)}"}), 403
+
 @timetables_bp.route('/rename/<file_id>', methods=['POST'])
 @jwt_required()
 @requires_role('admin')

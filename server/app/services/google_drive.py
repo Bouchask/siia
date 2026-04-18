@@ -26,6 +26,8 @@ class GoogleDriveService:
             creds = service_account.Credentials.from_service_account_file(
                 self.credentials_path, scopes=self.scopes
             )
+            # Store the email to expose it to the admin panel for permission guidance
+            self.service_account_email = creds.service_account_email
             return build('drive', 'v3', credentials=creds)
         except Exception as e:
             print(f"Auth Error: {e}")

@@ -22,6 +22,7 @@ const TimetableManager = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTT, setNewTT] = useState({ key_suffix: '', drive_id: '', name: '' });
   const [status, setStatus] = useState({ type: '', msg: '' });
+  const [serviceEmail, setServiceEmail] = useState('');
 
   // Utility to extract Drive ID from a full link
   const extractDriveId = (input) => {
@@ -30,7 +31,17 @@ const TimetableManager = () => {
     return match ? match[1] : input;
   };
 
-  useEffect(() => { init(); }, []);
+  useEffect(() => { 
+    init(); 
+    fetchServiceEmail();
+  }, []);
+
+  const fetchServiceEmail = async () => {
+    try {
+      const { email } = await timetableService.getServiceAccount();
+      setServiceEmail(email);
+    } catch (e) { console.error("Could not fetch service email"); }
+  };
 
   const init = async () => {
     setLoading(true);
@@ -78,12 +89,17 @@ const TimetableManager = () => {
   const handleAdd = async (e) => {
     e.preventDefault();
     const driveId = extractDriveId(newTT.drive_id);
+    if (!driveId) return alert("Invalid Google Drive ID or Link.");
+    
     const fullKey = `timetable_${newTT.key_suffix.toLowerCase()}_id`;
     try {
-      // 1. Associate ID in Settings
+      // 1. Check permissions first (this will trigger 403 if service account doesn't have access)
+      await timetableService.checkPermissions(driveId);
+
+      // 2. Associate ID in Settings
       await settingService.update({ [fullKey]: driveId });
       
-      // 2. If a custom name is provided, rename the file on Drive
+      // 3. If a custom name is provided, rename the file on Drive
       if (newTT.name) {
         await timetableService.rename(driveId, newTT.name);
       }
@@ -91,9 +107,23 @@ const TimetableManager = () => {
       setShowAddModal(false);
       setNewTT({ key_suffix: '', drive_id: '', name: '' });
       refreshData();
+      alert("Timetable connected successfully!");
     } catch (err) { 
       console.error(err);
-      alert("Association failed. Please check the File ID and your permissions."); 
+      const backendError = err.response?.data?.error || "";
+      
+      if (backendError.includes("Access Denied") || err.response?.status === 403) {
+        alert(
+          `PERMISSION ERROR: The system cannot access this file.\n\n` +
+          `ACTION REQUIRED:\n` +
+          `1. Open the file in Google Drive\n` +
+          `2. Click 'Share'\n` +
+          `3. Add this email as 'Editor':\n   ${serviceEmail || "the system service account"}\n` +
+          `4. Try again.`
+        );
+      } else {
+        alert(`Association failed: ${backendError || err.message}`);
+      }
     }
   };
 
