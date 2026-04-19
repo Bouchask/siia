@@ -157,7 +157,9 @@ const CourseManager = () => {
       setSettings(settingsData);
       setTimeout(() => setStatus({ type: '', msg: '' }), 3000);
     } catch (err) {
-      setStatus({ type: 'error', msg: 'Publishing failed.' });
+      console.error("Publishing error:", err);
+      const errorMsg = err.response?.data?.error || err.response?.data?.details || err.message || "Unknown error";
+      setStatus({ type: 'error', msg: `Publishing failed: ${errorMsg}` });
     }
   };
 

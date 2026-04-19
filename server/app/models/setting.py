@@ -17,10 +17,16 @@ class Setting(db.Model):
 
     @staticmethod
     def set(key, value):
-        setting = Setting.query.get(key)
-        if setting:
-            setting.value = value
-        else:
-            setting = Setting(key=key, value=value)
-            db.session.add(setting)
-        db.session.commit()
+        try:
+            setting = Setting.query.get(key)
+            if setting:
+                setting.value = value
+            else:
+                setting = Setting(key=key, value=value)
+                db.session.add(setting)
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            print(f"DATABASE ERROR (Setting.set): {str(e)}")
+            raise e
