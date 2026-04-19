@@ -1,123 +1,119 @@
 # 🎓 SIIA - Academic Excellence Hub
 ### *Scalable Infrastructure for Academic Information & Management*
 
-SIIA is a comprehensive, production-grade management system designed to streamline academic operations. Built with a focus on **Separation of Concerns** and **Secure RBAC Architecture**, this platform serves as a bridge between administration, faculty, and students.
-
-**Note:** This project was developed by a student of the SIIA Master's program to demonstrate high-level engineering standards in Information Systems and Artificial Intelligence.
+SIIA is a production-grade academic management system designed to streamline communication and resource sharing at **FP Khouribga (USMS)**. Built with a focus on **Separation of Concerns**, **Secure RBAC Architecture**, and **High-Performance Data Patterns**, this platform serves as a unified digital workspace for administration, faculty, and students.
 
 ---
 
 ## 🚀 Tech Stack
 
 **Frontend:**
-- **React 19** & **Vite** (Next-gen performance)
-- **Framer Motion** (Fluid UI/UX animations)
-- **Axios** (Centralized service layer)
-- **Lucide React** (Consistent iconography)
-- **TipTap / CKEditor** (Advanced Rich Text processing)
+- **React 19** & **Vite** (Next-gen development performance)
+- **Framer Motion** (Advanced scroll-triggered animations & fluid UI transitions)
+- **Axios** (Centralized service layer with JWT interceptors)
+- **Lucide React** (Premium engineering iconography)
+- **TipTap / Custom Block Editor** (Notion-style rich text processing for academic news)
 
 **Backend:**
-- **Flask** (Pythonic REST API)
-- **PostgreSQL** (Relational data persistence)
-- **SQLAlchemy ORM** (Database abstraction)
-- **Flask-JWT-Extended** (Secure claims-based authentication)
+- **Flask** (Pythonic REST API with modular Blueprints)
+- **PostgreSQL (Aiven.io)** (Secure relational data persistence with forced SSL)
+- **SQLAlchemy ORM** (Database abstraction & complex relationship management)
+- **Flask-JWT-Extended** (Secure claims-based authentication with role-based decorators)
 - **Alembic** (Version-controlled database migrations)
 
 **Infrastructure:**
-- **Render** (Cloud hosting & DB provisioning)
-- **Infrastructure as Code** (via `render.yaml`)
-- **Google Drive API** (Integrated cloud file management)
+- **Vercel** (Production hosting for both Frontend and Serverless Backend Functions)
+- **Google Drive API v3** (Integrated as a cloud-native storage engine via Service Accounts)
+- **Aiven Cloud** (High-availability managed PostgreSQL)
 
 ---
 
-## ✨ Key Architectural Features
+## ✨ Advanced Architectural Features
 
 ### 🏗️ Centralized Service Architecture
-Unlike standard React apps, SIIA utilizes a **Decoupled Service Layer**. Every API interaction is extracted from the UI components into dedicated service modules (`/client/src/services/`). This ensures:
-- **Clean Code:** UI components focus exclusively on state and rendering.
-- **Maintainability:** Endpoint changes occur in one file, reflecting project-wide.
-- **Scalability:** Easy to implement caching or interceptors globally.
+SIIA utilizes a **Decoupled Service Layer** (`/client/src/services/`). API logic is fully separated from UI components, ensuring:
+- **Clean Components:** React files focus exclusively on state and rendering logic.
+- **Global Resilience:** Connection fixes (like SSL enforcement or proxying) are applied once and reflected everywhere.
 
-### 🔐 Role-Based Access Control (RBAC)
-Security is implemented through a robust claims-based JWT system. Users are assigned roles (**Student, Professor, Admin**) that dynamically control:
-- **UI Visibility:** Navigation and buttons adapt to user permissions.
-- **API Security:** Backend decorators (`@requires_role`) verify permissions at the request level.
+### 💾 High-Efficiency Data Pattern (JSON Compression)
+To maximize the utility of the database while maintaining flexibility, course materials are stored as **Compressed JSON Strings**.
+- **Short-Key Mapping:** The system automatically converts long descriptive keys to single-letter tokens (`l`, `d`, `p`) before saving to the database.
+- **Capacity:** This allows storing **5x more academic resources** (Lectures, TDs, TPs) per module compared to standard storage patterns.
 
-### ☁️ Google Drive Integration
-SIIA uses the **Google Drive API** as a cloud-native storage engine for academic materials and timetables. The system dynamically fetches and synchronizes files from the institution's Drive, reducing local server overhead.
+### 🖼️ Secure Media Proxying
+To overcome browser security restrictions (**OpaqueResponseBlocking**) and Google Drive's default embedding limits, SIIA features a custom **Backend Proxy Layer**. Images and PDFs are fetched via the server-side Google Service Account and streamed to the client with correct MIME types.
+
+### 🏎️ Advanced SIIA Loader
+The platform features a custom-branded **High-Tech SIIA Loader** with a futuristic "scanning" effect and pulsing typography, ensuring a consistent premium feel during all asynchronous data fetching operations.
 
 ---
 
-## 🛠️ Local Development Setup
+## 📁 Project Structure
 
-### Prerequisites
-- Node.js (v18+)
-- Python 3.12+
-- PostgreSQL
+```text
+siia/
+├── client/                 # React 19 Frontend
+│   ├── src/
+│   │   ├── components/     # Reusable UI (SIIALoader, AnnouncementCard, etc.)
+│   │   ├── pages/          # View Controllers (Home, AboutSIIA, Timetables, Admin)
+│   │   ├── services/       # Decoupled API Service Layer
+│   │   ├── utils/          # Logic Helpers (DriveLinkConverter, etc.)
+│   │   └── data/           # Static Content & Localizations
+│   └── vercel.json         # Vercel Deployment Configuration
+├── server/                 # Flask Backend API
+│   ├── app/
+│   │   ├── api/            # Route Blueprints (Auth, Academic, Settings, Drive)
+│   │   ├── models/         # SQLAlchemy Database Schemas
+│   │   ├── services/       # Core Business Logic (Google Drive Service)
+│   │   └── utils/          # Decorators & Security Helpers
+│   ├── migrations/         # Alembic DB Migration Scripts
+│   ├── run.py              # Entry Point (Production & Vercel)
+│   └── config.py           # Production Configuration (SSL & Aiven Logic)
+└── README.md
+```
+
+---
+
+## 🛠️ Local Development
 
 ### 1. Backend Setup
 ```bash
 cd server
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create a `server/.env` file:
-```env
-DATABASE_URL=postgresql://user:pass@localhost:5432/siia_db
-SECRET_KEY=your_dev_secret
-JWT_SECRET_KEY=your_jwt_secret
-GOOGLE_APPLICATION_CREDENTIALS=your-google-creds.json
-FRONTEND_URL=http://localhost:5173
-```
-
-Initialize the database:
-```bash
-flask db upgrade
-python seed.py  # Optional: seed initial admin data
-python run.py
-```
+**Required `.env` Variables:**
+- `DATABASE_URL`: PostgreSQL connection string (include `?sslmode=require` for Aiven).
+- `GOOGLE_CREDENTIALS_JSON`: The raw JSON content of your Google Service Account.
+- `SECRET_KEY` & `JWT_SECRET_KEY`: Random secure strings.
 
 ### 2. Frontend Setup
 ```bash
 cd client
 npm install
-```
-
-Create a `client/.env` file:
-```env
-VITE_API_URL=http://localhost:5000
-```
-
-Start the development server:
-```bash
 npm run dev
 ```
 
 ---
 
-## 🚢 Production & Deployment
-
-This project is optimized for **Render.com** using the included `render.yaml` (Infrastructure as Code).
-
-### Deployment Workflow:
-1. **Infrastructure:** Render automatically provisions a PostgreSQL database and two web services (Static for React, Python for Flask).
-2. **Migrations:** The backend deployment automatically runs `flask db upgrade` to keep the production schema in sync.
-3. **Secrets:** All sensitive credentials (like Google JSON) are managed via Render's **Secret Files** system, ensuring no keys are ever committed to version control.
+## 🚢 Vercel Deployment
+This project is optimized for Vercel. 
+- The **Frontend** is deployed as a static build.
+- The **Backend** is served via Vercel's Python Runtime as Serverless Functions.
+- All secrets (DB, Google JSON) must be configured in the **Vercel Project Settings**.
 
 ---
 
 ## 👨‍💻 Authors
-**Yahya BOUCHAK**  
+**Yahya Bouchak**  
 *Information Systems & AI (SIIA) Master's Student*  
 *Full Stack Developer & AI Enthusiast*
 
-**Ilyasse ABIDI**  
-*Information Systems & AI (SIIA) Excellence Track*
-
-**Zakaria QASSIFI**  
-*Information Systems & AI (IIIA) *
+**Ilyass Abidi**  
+*Bachelor SIIA Student (Information System & IA)*  
+*Software Engineering & AI Enthusiast*
 
 ---
-*Developed with a focus on engineering standards, security, and clean architecture.*
+*Developed with a focus on engineering standards, security, and clean architecture for the SIIA Excellence Track.*
