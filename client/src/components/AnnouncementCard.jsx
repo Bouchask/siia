@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, ArrowRight, Tag, User, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { convertDriveLink } from './CustomBlockEditor/utils';
+import { convertDriveLink } from '../utils/DriveLinkConverter';
 import './AnnouncementCard.css';
 
 const AnnouncementCard = ({ announcement, index = 0 }) => {

@@ -8,7 +8,9 @@ import {
   ExternalLink, Search, GraduationCap, Info, Layout,
   Layers, Book, ArrowLeft
 } from 'lucide-react';
+import SIIALoader from '../../components/SIIALoader';
 import { convertDriveViewLink } from '../../components/CustomBlockEditor/utils';
+import { convertDriveLink } from '../../utils/DriveLinkConverter';
 import '../Home/Home.css';
 
 const CourseMaterials = () => {
@@ -75,12 +77,7 @@ const CourseMaterials = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (loading) return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--siia-bg)' }}>
-       <div className="loader-spiral" style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: 'var(--siia-blue)', borderRadius: '50%', animation: 'spin 1s infinite linear' }}></div>
-       <p style={{ marginTop: '20px', fontWeight: '800', color: 'var(--siia-blue)', letterSpacing: '1px' }}>SYNCHRONIZING DIGITAL ARCHIVES...</p>
-    </div>
-  );
+  if (loading) return <SIIALoader status="SYNCHRONIZING DIGITAL ARCHIVES" />;
 
   const filteredModules = activeSemester 
     ? courses.filter(c => c.semester_id === activeSemester.id && c.name.toLowerCase().includes(searchTerm.toLowerCase()))

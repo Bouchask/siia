@@ -4,6 +4,7 @@ import { Bell, Info, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import announcementService from '../../services/announcementService';
 import AnnouncementCard from '../../components/AnnouncementCard';
+import SIIALoader from '../../components/SIIALoader';
 import '../Home/Home.css';
 
 const Announcements = () => {

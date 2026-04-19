@@ -7,7 +7,7 @@ import {
   ChevronRight, LayoutDashboard, Settings
 } from 'lucide-react';
 import CustomBlockEditor from '../../components/CustomBlockEditor';
-import { convertDriveLink } from '../../components/CustomBlockEditor/utils';
+import { convertDriveLink } from '../../utils/DriveLinkConverter';
 import DOMPurify from 'dompurify';
 
 /**

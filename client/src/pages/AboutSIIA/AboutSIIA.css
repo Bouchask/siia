@@ -1,0 +1,218 @@
+/* Advanced Design for About SIIA Page */
+.about-siia-wrapper {
+  background-color: var(--siia-bg);
+  overflow-x: hidden;
+}
+
+.about-hero {
+  padding: 160px 0 100px;
+  background: 
+    radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.05) 0%, transparent 40%),
+    #fff;
+  text-align: center;
+}
+
+.about-hero-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Roadmap Section - Timeline Journey Design */
+.roadmap-wrapper {
+  position: relative;
+  margin-top: 80px;
+}
+
+/* The Vertical Journey Path */
+.roadmap-path {
+  position: absolute;
+  left: 50%;
+  top: 100px;
+  bottom: 100px;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--siia-blue), #7c3aed, transparent);
+  transform: translateX(-50%);
+  display: none;
+  z-index: 0;
+}
+
+@media (min-width: 992px) {
+  .roadmap-path { display: block; }
+}
+
+.roadmap-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 80px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 992px) {
+  .roadmap-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 120px;
+  }
+}
+
+.roadmap-card {
+  background: #0f172a;
+  border-radius: 40px;
+  padding: 60px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+}
+
+/* Timeline Connector Node */
+.roadmap-node {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: var(--siia-blue);
+  border: 4px solid #0f172a;
+  border-radius: 50%;
+  top: 60px;
+  z-index: 10;
+  box-shadow: 0 0 20px var(--siia-blue);
+  display: none;
+}
+
+.roadmap-card.bachelor .roadmap-node { right: -72px; display: block; }
+.roadmap-card.master .roadmap-node { left: -72px; display: block; }
+
+@media (max-width: 991px) {
+  .roadmap-node { display: none !important; }
+}
+
+.roadmap-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: 0 40px 100px -20px rgba(15, 23, 42, 0.6);
+}
+
+.roadmap-card.bachelor {
+  background: linear-gradient(165deg, #0f172a 0%, #1e293b 100%);
+}
+
+.roadmap-card.master {
+  background: linear-gradient(165deg, #1e293b 0%, #0f172a 100%);
+  margin-top: 100px;
+}
+
+@media (max-width: 991px) {
+  .roadmap-card.master { margin-top: 0; }
+}
+
+.roadmap-icon-bg {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  opacity: 0.05;
+  transform: rotate(-15deg);
+  transition: all 0.8s ease;
+}
+
+.roadmap-card:hover .roadmap-icon-bg {
+  transform: scale(1.1) rotate(-5deg);
+  opacity: 0.1;
+}
+
+.roadmap-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  margin-bottom: 32px;
+}
+
+.module-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.module-tag {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 18px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  transition: 0.3s;
+}
+
+.roadmap-card:hover .module-tag {
+  border-color: rgba(37, 99, 235, 0.3);
+  color: #fff;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+/* Checklist Styling */
+.checklist-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 60px;
+  border-radius: 48px;
+}
+
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.check-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--siia-blue);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* CTA Card */
+.cta-banner {
+  background: #fff;
+  border: 1px solid var(--siia-border);
+  padding: 100px 40px;
+  border-radius: 60px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.02);
+}
+
+.cta-banner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.03), transparent);
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .roadmap-card { padding: 40px 30px; border-radius: 32px; }
+  .checklist-card { padding: 30px; border-radius: 32px; }
+  .cta-banner { padding: 60px 20px; border-radius: 32px; }
+}

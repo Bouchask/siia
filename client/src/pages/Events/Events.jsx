@@ -4,6 +4,7 @@ import { Calendar, Info, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import eventService from '../../services/eventService';
 import PremiumEventCard from '../../components/PremiumEventCard';
+import SIIALoader from '../../components/SIIALoader';
 import '../Home/Home.css';
 
 const Events = () => {
@@ -26,6 +27,8 @@ const Events = () => {
       setLoading(false);
     }
   };
+
+  if (loading) return <SIIALoader status="SYNCHRONIZING ACADEMIC CALENDAR" />;
 
   return (
     <div className="events-gallery-page" style={{ background: 'var(--siia-bg)', minHeight: '100vh', paddingTop: '100px' }}>
@@ -60,13 +63,7 @@ const Events = () => {
           </motion.p>
         </header>
 
-        {loading ? (
-          <div className="announcement-grid">
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{ height: '500px', background: '#fff', borderRadius: '24px', animation: 'pulse 1.5s infinite' }}></div>
-            ))}
-          </div>
-        ) : events.length > 0 ? (
+        {events.length > 0 ? (
           <div className="announcement-grid" style={{ paddingBottom: '100px' }}>
             {events.map((event, index) => (
               <PremiumEventCard key={event.id} event={event} index={index} />
@@ -96,14 +93,6 @@ const Events = () => {
           </motion.div>
         )}
       </div>
-
-      <style>{`
-        @keyframes pulse {
-          0% { opacity: 1; }
-          50% { opacity: 0.5; }
-          100% { opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 };

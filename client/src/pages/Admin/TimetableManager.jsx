@@ -4,6 +4,7 @@ import timetableService from '../../services/timetableService';
 import settingService from '../../services/settingService';
 import academicService from '../../services/academicService';
 import { motion, AnimatePresence } from 'framer-motion';
+import SIIALoader from '../../components/SIIALoader';
 import { 
   Calendar, Save, FileText, Link as LinkIcon, 
   Edit3, Eye, CheckCircle, AlertCircle, ChevronRight, 
@@ -128,7 +129,7 @@ const TimetableManager = () => {
     }
   };
 
-  if (loading) return <div className="studio-init">Preparing Schedule Workspace...</div>;
+  if (loading) return <SIIALoader status="PREPARING SCHEDULE WORKSPACE" />;
 
   return (
     <div className="tt-studio">

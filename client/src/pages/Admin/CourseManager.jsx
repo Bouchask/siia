@@ -10,6 +10,7 @@ import {
   Search
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import SIIALoader from '../../components/SIIALoader';
 
 const CourseManager = () => {
   const { token, user } = useAuth();
@@ -163,7 +164,7 @@ const CourseManager = () => {
     }
   };
 
-  if (loading) return <div className="studio-init">Entering Professor Studio...</div>;
+  if (loading) return <SIIALoader status="ENTERING PROFESSOR STUDIO" />;
 
   return (
     <div className="course-manager-v2">

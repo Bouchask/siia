@@ -3,6 +3,7 @@ import { API_BASE_URL } from '../../services/api';
 import timetableService from '../../services/timetableService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, FileText, X, ExternalLink, Clock, ChevronRight, Info } from 'lucide-react';
+import SIIALoader from '../../components/SIIALoader';
 import '../Home/Home.css';
 
 const Timetables = () => {
@@ -64,11 +65,7 @@ const Timetables = () => {
         </header>
 
         {loading ? (
-          <div className="announcement-grid">
-            {[1, 2].map(i => (
-              <div key={i} style={{ height: '200px', background: '#fff', borderRadius: '24px', animation: 'pulse 1.5s infinite' }}></div>
-            ))}
-          </div>
+          <SIIALoader status="SYNCHRONIZING WITH ADMINISTRATION DRIVE" />
         ) : timetables.length > 0 ? (
           <div className="announcement-grid" style={{ marginBottom: '60px' }}>
             {timetables.map((file, index) => (

@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ArrowRight, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { convertDriveLink } from './CustomBlockEditor/utils';
+import { convertDriveLink } from '../utils/DriveLinkConverter';
 import './PremiumEventCard.css';
 
 const PremiumEventCard = ({ event, index }) => {

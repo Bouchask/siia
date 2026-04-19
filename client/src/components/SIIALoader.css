@@ -1,0 +1,59 @@
+.siia-logo-loader-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  font-family: 'Inter', sans-serif;
+}
+
+.siia-loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.siia-logo-text {
+  font-size: 5rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -5px;
+  display: flex;
+  position: relative;
+  padding: 0 20px;
+}
+
+.siia-logo-text .letter {
+  display: inline-block;
+}
+
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #2563eb, transparent);
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+  opacity: 0.8;
+}
+
+.loader-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #2563eb;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #2563eb;
+  border-radius: 50%;
+}

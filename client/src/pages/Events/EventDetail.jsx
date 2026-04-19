@@ -4,7 +4,7 @@ import eventService from '../../services/eventService';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, MapPin, Clock, Share2, Bookmark } from 'lucide-react';
 import DOMPurify from 'dompurify';
-import { convertDriveLink } from '../../components/CustomBlockEditor/utils';
+import { convertDriveLink } from '../../utils/DriveLinkConverter';
 
 /**
  * PURE HTML RENDERER UTILITY (Shared)

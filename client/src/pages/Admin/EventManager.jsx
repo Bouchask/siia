@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import CustomBlockEditor from '../../components/CustomBlockEditor';
-import { convertDriveLink } from '../../components/CustomBlockEditor/utils';
+import { convertDriveLink } from '../../utils/DriveLinkConverter';
 import DOMPurify from 'dompurify';
 
 /**
