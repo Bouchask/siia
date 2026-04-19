@@ -115,5 +115,9 @@ This project is optimized for Vercel.
 *Bachelor SIIA Student (Information System & IA)*  
 *Software Engineering & AI Enthusiast*
 
+**Zakaria Qassifi**  
+*IIIA Student (Ingénierie Informatique et IA)*  
+*Software Engineering & AI Enthusiast*
+
 ---
 *Developed with a focus on engineering standards, security, and clean architecture for the SIIA Excellence Track.*
