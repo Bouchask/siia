@@ -2,8 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   Cpu, Database, Globe, TrendingUp, CheckCircle, 
-  ArrowRight, Award, GraduationCap, DownloadCloud,
-  Layers, Rocket, Sparkles, Binary
+  ArrowRight, Award, GraduationCap, Mail,
+  Layers, Rocket, Sparkles, Binary, Zap, Network,
+  BrainCircuit, Eye, MessageSquare, Briefcase, BookOpen
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './AboutSIIA.css';
@@ -11,220 +12,215 @@ import './AboutSIIA.css';
 const AboutSIIA = () => {
   window.scrollTo(0, 0);
 
-  const roadmap = [
+  const journey = [
     {
-      level: "Bachelor (Licence d'Excellence)",
-      type: "bachelor",
-      duration: "1 Year (S5 & S6)",
-      title: "Foundational Mastery",
-      description: "Intensive training for Bac+2 holders. Focuses on advanced programming, system architecture, and core AI concepts.",
-      modules: ["Advanced Java", "Big Data Architecture", "Machine Learning", "Network Admin"],
-      icon: <Layers size={100} />
+      level: "Core Engineering",
+      title: "Software Architecture",
+      desc: "Mastering the fundamentals of large-scale systems, including advanced object-oriented design and robust networking protocols.",
+      side: "left",
+      dark: false,
+      icon: <Layers size={40} />,
+      modules: [
+        { name: "Advanced Java", icon: <Binary size={14}/> },
+        { name: "Software Engineering", icon: <Layers size={14}/> },
+        { name: "Computer Networks", icon: <Network size={14}/> },
+        { name: "System Admin", icon: <Briefcase size={14}/> }
+      ]
     },
     {
-      level: "Master of Excellence",
-      type: "master",
-      duration: "2 Years (S7 to S10)",
-      title: "Specialized Innovation",
-      description: "Advanced specialization in AI systems, Cloud Computing, and complex Information Systems management.",
-      modules: ["Deep Learning", "Cloud Ops", "Data Engineering", "NLP & Vision"],
-      icon: <Rocket size={100} />
+      level: "Intelligence",
+      title: "AI & Machine Learning",
+      desc: "Deep dive into the mathematical and algorithmic foundations of modern artificial intelligence and predictive modeling.",
+      side: "right",
+      dark: true,
+      icon: <BrainCircuit size={40} />,
+      modules: [
+        { name: "Machine Learning", icon: <BrainCircuit size={14}/> },
+        { name: "Deep Learning", icon: <Cpu size={14}/> },
+        { name: "Data Mining", icon: <Database size={14}/> },
+        { name: "Optimization", icon: <Zap size={14}/> }
+      ]
+    },
+    {
+      level: "Data & Cloud",
+      title: "Scalable Infrastructure",
+      desc: "Mastering modern data ecosystems, focusing on distributed computing and cloud-native architecture for big data.",
+      side: "left",
+      dark: false,
+      icon: <Database size={40} />,
+      modules: [
+        { name: "Cloud Computing", icon: <Globe size={14}/> },
+        { name: "NoSQL Systems", icon: <Database size={14}/> },
+        { name: "Big Data (Hadoop)", icon: <Layers size={14}/> },
+        { name: "Research Methods", icon: <BookOpen size={14}/> }
+      ]
+    },
+    {
+      level: "Specialization",
+      title: "Advanced Perception",
+      desc: "Exploring the frontiers of AI through computer vision and natural language processing for industrial applications.",
+      side: "right",
+      dark: true,
+      icon: <Eye size={40} />,
+      modules: [
+        { name: "Computer Vision", icon: <Eye size={14}/> },
+        { name: "NLP (Lang. Tech)", icon: <MessageSquare size={14}/> },
+        { name: "Industrial AI", icon: <Zap size={14}/> },
+        { name: "Graduation Project", icon: <GraduationCap size={14}/> }
+      ]
     }
   ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.2 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
 
   return (
     <div className="about-siia-wrapper">
       
-      {/* 1. ADVANCED HERO */}
+      {/* HERO */}
       <section className="about-hero">
         <div className="home-container">
-          <div className="about-hero-content">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              style={{ marginBottom: '24px', display: 'inline-block' }}
-            >
-              <span className="badge-premium">
-                <Sparkles size={14} /> The SIIA Experience
-              </span>
-            </motion.div>
-            
-            <motion.h1 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="hero-title"
-            >
-              Pioneering the Next Wave of <br/>
-              <span className="text-gradient">Intelligent Engineering</span>
-            </motion.h1>
-            
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="hero-subtitle"
-            >
-              The SIIA Excellence Track at FPK is more than just a degree. It's a high-impact incubator for future AI leaders, data architects, and systems innovators.
-            </motion.p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <span className="badge-premium">
+              <Sparkles size={14} /> The SIIA Excellence Track
+            </span>
+            <h1 className="hero-title">
+              Engineering the <br/>
+              <span className="text-gradient">Intelligence of Tomorrow</span>
+            </h1>
+            <p className="hero-subtitle" style={{ textAlign: 'center', margin: '0 auto', maxWidth: '800px' }}>
+              Located at FP Khouribga (USMS), the SIIA track is a prestigious academic journey designed to produce world-class experts in AI, Data Science, and Modern Information Systems.
+            </p>
+          </motion.div>
         </div>
       </section>
 
-      {/* 2. THE PILLARS (Clean Grid) */}
-      <section className="section-padding" style={{ background: '#fff' }}>
+      {/* JOURNEY TIMELINE */}
+      <section className="section-padding" style={{ background: '#f8fafc' }}>
         <div className="home-container">
-          <div className="features-grid-v2">
-            {[
-              { icon: <Cpu />, title: "AI-First Thinking", desc: "Developing solutions where intelligence is integrated at the core of every system.", color: "bg-blue" },
-              { icon: <Database />, title: "Data Scalability", desc: "Mastering the infrastructure needed to handle global-scale data ecosystems.", color: "bg-purple" },
-              { icon: <Binary />, title: "Algorithmic Rigor", desc: "Solving complex computational challenges with optimized mathematical models.", color: "bg-amber" }
-            ].map((pillar, i) => (
-              <motion.div 
-                key={i}
-                whileHover={{ y: -10 }}
-                className="feature-card-v2"
-              >
-                <div className={`f-icon-wrap ${pillar.color}`}>{pillar.icon}</div>
-                <h3>{pillar.title}</h3>
-                <p>{pillar.desc}</p>
-              </motion.div>
+          <div className="center-header">
+            <span className="section-tag">Academic Evolution</span>
+            <h2 className="section-title">The Roadmap to Mastery</h2>
+            <p className="section-desc">Our curriculum is precision-engineered for professional growth across four core dimensions.</p>
+          </div>
+
+          <div className="journey-path-container">
+            <div className="journey-line">
+               <motion.div 
+                className="journey-progress"
+                initial={{ height: 0 }}
+                whileInView={{ height: '100%' }}
+                viewport={{ once: false }}
+                transition={{ duration: 1.5 }}
+              ></motion.div>
+            </div>
+            
+            {journey.map((step, i) => (
+              <div key={i} className={`journey-step ${step.side}`}>
+                <div className="journey-node-outer">
+                  <div className="journey-node-inner"></div>
+                </div>
+
+                <div className="journey-content-box">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    className={`journey-card advanced-design ${step.dark ? 'dark' : ''}`}
+                  >
+                    <div className="card-header-flex">
+                      <div className="step-icon-container">
+                        {step.icon}
+                      </div>
+                      <span className="level-badge-v2">
+                        {step.level}
+                      </span>
+                    </div>
+
+                    <h3 className="step-title-v2">{step.title}</h3>
+                    <p className="step-desc-v2">{step.desc}</p>
+                    
+                    <div className="module-grid-advanced">
+                      {step.modules.map((m, idx) => (
+                        <div key={idx} className="module-pill-v2">
+                          {m.name}
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 3. STAGGERED ROADMAP */}
-      <section className="section-padding">
-        <div className="home-container">
-          <div className="center-header">
-            <span className="section-tag">Program Evolution</span>
-            <h2 className="section-title">The Academic Journey</h2>
-          </div>
-
-          <div className="roadmap-wrapper">
-            <div className="roadmap-path"></div>
-            
-            <div className="roadmap-container">
-              {roadmap.map((step, i) => (
-                <motion.div 
-                  key={i}
-                  className={`roadmap-card ${step.type}`}
-                  initial={{ opacity: 0, x: i % 2 === 0 ? -50 : 50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.8 }}
-                >
-                  <div className="roadmap-node"></div>
-                  <div className="roadmap-icon-bg">{step.icon}</div>
-                  <span className="roadmap-badge">{step.level}</span>
-                  <h3 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '20px' }}>{step.title}</h3>
-                  <p style={{ color: '#94a3b8', fontSize: '1.1rem', lineHeight: '1.7', marginBottom: '40px' }}>{step.description}</p>
-                  
-                  <div className="module-tag-list">
-                    {step.modules.map((m, idx) => (
-                      <span key={idx} className="module-tag">{m}</span>
-                    ))}
-                  </div>
-                  
-                  <div style={{ marginTop: '50px', paddingTop: '30px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--siia-blue)' }}>{step.duration}</span>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <ArrowRight size={18} color="#fff" />
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. PROSPECTS & ADMISSION (Glassmorphism) */}
-      <section className="section-padding excellence-section-bg">
+      {/* VISION & IMPACT */}
+      <section className="section-padding excellence-section-bg" style={{ color: '#fff' }}>
         <div className="home-container">
           <div className="excellence-grid-v2">
-            <div className="excellence-text-content">
-              <span className="section-tag">Impact & Careers</span>
-              <h2 className="section-title-large">Where Innovation <br/> Meets Industry</h2>
+            <div>
+              <span className="section-tag">Vision 2030</span>
+              <h2 className="section-title-large">Impact Beyond <br/> the Classroom</h2>
+              <p style={{ color: '#94a3b8', fontSize: '1.2rem', marginBottom: '40px', lineHeight: '1.8' }}>
+                Aligned with the PACTE-ESRI 2030 national plan, the SIIA Excellence Track is a strategic pillar for digital sovereignty and regional innovation.
+              </p>
+              
               <div className="mission-items">
                 <div className="mission-item">
                   <div className="m-icon"><TrendingUp size={20} /></div>
                   <div className="m-text">
-                    <h4>High-Performance Careers</h4>
-                    <p>Our alumni are leading digital transformations in top-tier technology firms and research institutes worldwide.</p>
+                    <h4>High-Impact Employability</h4>
+                    <p>Training experts for the most demanded roles in the global tech market: Data Scientists, AI Engineers, and Cloud Architects.</p>
                   </div>
                 </div>
                 <div className="mission-item">
-                  <div className="m-icon"><Award size={20} /></div>
+                  <div className="m-icon"><Rocket size={20} /></div>
                   <div className="m-text">
-                    <h4>Academic Excellence</h4>
-                    <p>A direct pathway to doctoral research in the Sultan Moulay Slimane University's most prestigious labs.</p>
+                    <h4>Regional Innovation Hub</h4>
+                    <p>Empowering students to solve real-world industrial challenges for major players like the OCP Group.</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <motion.div 
-              className="checklist-card"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-            >
-              <h3 style={{ color: '#fff', fontSize: '1.8rem', fontWeight: 900, marginBottom: '32px' }}>Join the Track</h3>
-              <div className="check-list">
-                {[
-                  "Completion of Bac+2 (SMI, DUT, or BTS)",
-                  "Technical Proficiency in Core Programming",
-                  "Analytical Logic & Mathematical Foundations",
-                  "Dedication to Emerging AI Technologies"
-                ].map((text, i) => (
-                  <div key={i} className="check-item">
-                    <div className="check-icon"><CheckCircle size={16} /></div>
-                    <span style={{ color: '#94a3b8', fontWeight: 600, fontSize: '15px' }}>{text}</span>
-                  </div>
-                ))}
+            <div className="vision-grid">
+              <div className="vision-card">
+                <div className="vision-icon"><CheckCircle size={24} /></div>
+                <h4>Digital Sovereignty</h4>
+                <p>Equipping Moroccan talent with the technical mastery needed to lead the nation's digital transformation.</p>
               </div>
-              <button style={{ width: '100%', marginTop: '40px', padding: '20px', borderRadius: '18px', border: 'none', background: 'var(--siia-blue)', color: '#fff', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                <DownloadCloud size={20} /> Download Admission Guide
-              </button>
-            </motion.div>
+              <div className="vision-card">
+                <div className="vision-icon"><Award size={24} /></div>
+                <h4>Research Excellence</h4>
+                <p>Providing a seamless gateway to advanced Ph.D. research in Sultan Moulay Slimane University's top labs.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 5. FINAL CALL TO ACTION */}
+      {/* FINAL CTA */}
       <section className="section-padding">
         <div className="home-container">
           <motion.div 
-            className="cta-banner"
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.01 }}
+            style={{ 
+              background: '#fff', padding: '100px 40px', borderRadius: '60px', 
+              textAlign: 'center', border: '1px solid var(--siia-border)',
+              boxShadow: '0 40px 80px -20px rgba(0,0,0,0.05)'
+            }}
           >
-            <h2 className="section-title" style={{ marginBottom: '20px' }}>Architecture your future.</h2>
-            <p className="section-desc" style={{ marginBottom: '40px', maxWidth: '500px', margin: '0 auto 40px' }}>
-              Apply for the SIIA Excellence Track and become part of a legacy of innovation.
-            </p>
+            <h2 className="section-title">Ready to define your future?</h2>
+            <p className="section-desc" style={{ marginBottom: '40px' }}>Join the SIIA elite and start your journey towards excellence.</p>
             <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link to="/courses" className="btn btn-primary">
-                Explore Modules <ArrowRight style={{marginLeft: '10px'}} size={18} />
+                Explore All Modules <ArrowRight style={{marginLeft: '10px'}} size={18} />
               </Link>
-              <Link to="/login" className="btn btn-secondary">
-                Candidate Portal
-              </Link>
+              <a href="mailto:siia.contact@usms.ma" className="btn btn-secondary">
+                <Mail style={{marginRight: '10px'}} size={18} /> Contact Administration
+              </a>
             </div>
           </motion.div>
         </div>

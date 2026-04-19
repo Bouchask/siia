@@ -102,11 +102,11 @@ const Home = () => {
                 {hero.subtitle}
               </p>
               <div className="hero-actions">
-                <Link to="/announcements" className="btn btn-primary">
-                  Explore News <ArrowRight style={{marginLeft: '10px'}} size={18} />
+                <Link to="/about-siia" className="btn btn-primary">
+                  Discover the Track <Zap style={{marginLeft: '10px'}} size={18} />
                 </Link>
-                <Link to="/courses" className="btn btn-secondary">
-                  Access Resources
+                <Link to="/announcements" className="btn btn-secondary">
+                  Explore News
                 </Link>
               </div>
               
@@ -285,8 +285,8 @@ const Home = () => {
               </div>
               
               <div className="excellence-action">
-                <Link to="/courses" className="btn btn-primary-outline">
-                  See Academic Program <ArrowRight size={16} />
+                <Link to="/about-siia" className="btn btn-primary-outline">
+                  See Excellence Track <ArrowRight size={16} />
                 </Link>
               </div>
             </div>

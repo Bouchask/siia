@@ -1,4 +1,4 @@
-/* Advanced Design for About SIIA Page */
+/* Premium About SIIA Styling */
 .about-siia-wrapper {
   background-color: var(--siia-bg);
   overflow-x: hidden;
@@ -7,212 +7,297 @@
 .about-hero {
   padding: 160px 0 100px;
   background: 
-    radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.03) 0%, transparent 40%),
     #fff;
   text-align: center;
 }
 
-.about-hero-content {
-  max-width: 900px;
+/* Timeline Journey */
+.journey-path-container {
+  position: relative;
+  padding: 80px 0;
+}
+
+/* --- REFINED ROADMAP DESIGN --- */
+.journey-path-container {
+  position: relative;
+  padding: 120px 0;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
-/* Roadmap Section - Timeline Journey Design */
-.roadmap-wrapper {
-  position: relative;
-  margin-top: 80px;
-}
-
-/* The Vertical Journey Path */
-.roadmap-path {
+/* Central Line - Focused Blue */
+.journey-line {
   position: absolute;
   left: 50%;
-  top: 100px;
-  bottom: 100px;
+  top: 0;
+  bottom: 0;
   width: 2px;
-  background: linear-gradient(to bottom, transparent, var(--siia-blue), #7c3aed, transparent);
+  background: #e2e8f0; /* Light gray base */
   transform: translateX(-50%);
-  display: none;
-  z-index: 0;
-}
-
-@media (min-width: 992px) {
-  .roadmap-path { display: block; }
-}
-
-.roadmap-container {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 80px;
-  position: relative;
   z-index: 1;
 }
 
-@media (min-width: 992px) {
-  .roadmap-container {
-    grid-template-columns: 1fr 1fr;
-    gap: 120px;
-  }
+.journey-progress {
+  width: 100%;
+  background: var(--siia-blue); /* Solid Professional Blue */
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
 }
 
-.roadmap-card {
-  background: #0f172a;
-  border-radius: 40px;
-  padding: 60px;
-  color: #fff;
+.journey-step {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 80px;
   position: relative;
-  overflow: hidden;
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid rgba(255,255,255,0.05);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+  z-index: 2;
 }
 
-/* Timeline Connector Node */
-.roadmap-node {
+.journey-content-box {
+  width: 44%;
+}
+
+/* 2 Left, 2 Right Alignment */
+.journey-step.left .journey-content-box {
+  margin-right: auto;
+  padding-right: 40px;
+}
+
+.journey-step.right .journey-content-box {
+  margin-left: auto;
+  padding-left: 40px;
+}
+
+/* Glowing Nodes - Re-centered */
+.journey-node-outer {
   position: absolute;
-  width: 24px;
-  height: 24px;
-  background: var(--siia-blue);
-  border: 4px solid #0f172a;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border: 3px solid var(--siia-blue);
   border-radius: 50%;
-  top: 60px;
   z-index: 10;
-  box-shadow: 0 0 20px var(--siia-blue);
-  display: none;
-}
-
-.roadmap-card.bachelor .roadmap-node { right: -72px; display: block; }
-.roadmap-card.master .roadmap-node { left: -72px; display: block; }
-
-@media (max-width: 991px) {
-  .roadmap-node { display: none !important; }
-}
-
-.roadmap-card:hover {
-  transform: translateY(-10px) scale(1.02);
-  border-color: rgba(37, 99, 235, 0.3);
-  box-shadow: 0 40px 100px -20px rgba(15, 23, 42, 0.6);
-}
-
-.roadmap-card.bachelor {
-  background: linear-gradient(165deg, #0f172a 0%, #1e293b 100%);
-}
-
-.roadmap-card.master {
-  background: linear-gradient(165deg, #1e293b 0%, #0f172a 100%);
-  margin-top: 100px;
-}
-
-@media (max-width: 991px) {
-  .roadmap-card.master { margin-top: 0; }
-}
-
-.roadmap-icon-bg {
-  position: absolute;
-  top: -20px;
-  right: -20px;
-  opacity: 0.05;
-  transform: rotate(-15deg);
-  transition: all 0.8s ease;
-}
-
-.roadmap-card:hover .roadmap-icon-bg {
-  transform: scale(1.1) rotate(-5deg);
-  opacity: 0.1;
-}
-
-.roadmap-badge {
-  display: inline-block;
-  padding: 8px 20px;
-  background: rgba(37, 99, 235, 0.2);
-  color: #60a5fa;
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  border: 1px solid rgba(37, 99, 235, 0.3);
-  margin-bottom: 32px;
-}
-
-.module-tag-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 40px;
-}
-
-.module-tag {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 10px 18px;
-  border-radius: 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #94a3b8;
-  transition: 0.3s;
-}
-
-.roadmap-card:hover .module-tag {
-  border-color: rgba(37, 99, 235, 0.3);
-  color: #fff;
-  background: rgba(37, 99, 235, 0.1);
-}
-
-/* Checklist Styling */
-.checklist-card {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 60px;
-  border-radius: 48px;
-}
-
-.check-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.check-icon {
-  width: 28px;
-  height: 28px;
-  background: var(--siia-blue);
-  color: #fff;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  margin-top: 2px;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 5px #fff;
 }
 
-/* CTA Card */
-.cta-banner {
+.journey-node-inner {
+  width: 8px;
+  height: 8px;
+  background: var(--siia-blue);
+  border-radius: 50%;
+}
+
+/* Card Design - Advanced & Surgical */
+.journey-card.advanced-design {
   background: #fff;
+  border-radius: 24px;
+  padding: 32px;
   border: 1px solid var(--siia-border);
-  padding: 100px 40px;
-  border-radius: 60px;
-  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  transition: all 0.5s ease;
   position: relative;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.02);
 }
 
-.cta-banner::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.03), transparent);
-  pointer-events: none;
+.journey-card.advanced-design:hover {
+  transform: translateY(-8px);
+  border-color: var(--siia-blue);
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.08);
+}
+
+.journey-card.dark {
+  background: #0f172a;
+  color: #fff;
+}
+
+.card-header-flex {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.step-icon-container {
+  width: 48px;
+  height: 48px;
+  background: var(--siia-blue-light);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--siia-blue);
+}
+
+.dark .step-icon-container {
+  background: rgba(37, 99, 235, 0.1);
+  color: #60a5fa;
+}
+
+.level-badge-v2 {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--siia-blue);
+  background: var(--siia-blue-light);
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.dark .level-badge-v2 {
+  color: #60a5fa;
+  background: rgba(37, 99, 235, 0.2);
+}
+
+.step-title-v2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.step-desc-v2 {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.dark .step-desc-v2 { color: #94a3b8; }
+
+.module-grid-advanced {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.module-pill-v2 {
+  background: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  border: 1px solid #f1f5f9;
+}
+
+.dark .module-pill-v2 {
+  background: rgba(255,255,255,0.03);
+  color: #94a3b8;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* --- MOBILE OPTIMIZATION --- */
+@media (max-width: 991px) {
+  .journey-path-container { padding: 60px 20px; }
+  .journey-line { left: 20px; transform: none; }
+  .journey-step { flex-direction: column; align-items: flex-start; padding-left: 45px; margin-bottom: 60px; }
+  .journey-content-box { width: 100%; }
+  .journey-step.left .journey-content-box,
+  .journey-step.right .journey-content-box { padding: 0; text-align: left; }
+  .journey-node-outer { left: -34px; top: 30px; transform: none; }
 }
 
 @media (max-width: 480px) {
-  .roadmap-card { padding: 40px 30px; border-radius: 32px; }
-  .checklist-card { padding: 30px; border-radius: 32px; }
-  .cta-banner { padding: 60px 20px; border-radius: 32px; }
+  .journey-card.advanced-design { padding: 24px; }
+  .step-title-v2 { font-size: 1.25rem; }
+}
+
+.journey-card:hover {
+  transform: translateY(-10px);
+  border-color: var(--siia-blue);
+  box-shadow: 0 40px 80px -20px rgba(37, 99, 235, 0.1);
+}
+
+.journey-card.dark {
+  background: #0f172a;
+  border: none;
+  color: #fff;
+}
+
+.journey-card.dark .module-tag {
+  background: rgba(255,255,255,0.05);
+  color: #94a3b8;
+}
+
+.level-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+}
+
+.module-grid-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.module-tag {
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--siia-text-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Vision Cards */
+.vision-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  margin-top: 60px;
+}
+
+.vision-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 40px;
+  border-radius: 32px;
+  color: #fff;
+}
+
+.vision-icon {
+  width: 56px;
+  height: 56px;
+  background: var(--siia-blue);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.vision-card h4 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.vision-card p {
+  color: #94a3b8;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .journey-card { padding: 40px 30px; border-radius: 30px; }
+  .module-grid-mini { grid-template-columns: 1fr; }
 }

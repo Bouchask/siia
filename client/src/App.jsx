@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Calendar, BookOpen, Home, LogIn, Menu, X, LayoutDashboard } from 'lucide-react';
+import { Bell, Calendar, BookOpen, Home, LogIn, Menu, X, LayoutDashboard, Award } from 'lucide-react';
 import HomePage from './pages/Home/Home';
 import LoginPage from './pages/Login/Login';
 import Announcements from './pages/Announcements/Announcements';
@@ -10,6 +10,7 @@ import Events from './pages/Events/Events';
 import EventDetail from './pages/Events/EventDetail';
 import Timetables from './pages/Timetables/Timetables';
 import CourseMaterials from './pages/CourseMaterials/CourseMaterials';
+import AboutSIIA from './pages/AboutSIIA/AboutSIIA';
 import AdminLayout from './components/AdminLayout';
 import DashboardHome from './pages/Admin/DashboardHome';
 import AnnouncementManager from './pages/Admin/AnnouncementManager';
@@ -40,6 +41,7 @@ const Navbar = () => {
 
   const navLinks = [
     { to: "/", label: "Home", icon: <Home size={18}/> },
+    { to: "/about-siia", label: "Excellence Track", icon: <Award size={18}/> },
     { to: "/announcements", label: "News", icon: <Bell size={18}/> },
     { to: "/events", label: "Events", icon: <Calendar size={18}/> },
     { to: "/timetables", label: "Timetables", icon: <Calendar size={18}/> },
@@ -190,6 +192,7 @@ function App() {
           <Route path="/events/:id" element={<><Navbar /><EventDetail /></>} />
           <Route path="/timetables" element={<><Navbar /><Timetables /></>} />
           <Route path="/courses" element={<><Navbar /><CourseMaterials /></>} />
+          <Route path="/about-siia" element={<><Navbar /><AboutSIIA /></>} />
 
           {/* Admin Dashboard Routes (Protected) */}
           <Route path="/admin" element={
