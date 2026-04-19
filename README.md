@@ -114,8 +114,10 @@ This project is optimized for **Render.com** using the included `render.yaml` (I
 *Full Stack Developer & AI Enthusiast*
 
 **Ilyasse ABIDI**  
-*Bachelor SIIA Student (Information System & IA)*  
-*Software Engineering & AI Enthusiast*
+*Information Systems & AI (SIIA) Excellence Track*
+
+**Zakaria QASSIFI**  
+*Information Systems & AI (IIIA) *
 
 ---
 *Developed with a focus on engineering standards, security, and clean architecture.*
