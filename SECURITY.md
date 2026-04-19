@@ -86,4 +86,4 @@ Sensitive data (API keys, DB credentials, JWT secrets) are **never** committed t
 *Information Systems & AI (SIIA) Excellence Track*
 
 **Ilyass ABIDI**  
-*Bachelor SIIA Student (Information System & IA)*
+*Information Systems & AI (SIIA) Excellence Track*
