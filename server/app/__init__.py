@@ -30,11 +30,35 @@ def create_app(config_class=Config):
     # Remove None values and ensure uniqueness
     allowed_origins = list(set(origin for origin in allowed_origins if origin))
     
-    CORS(app, resources={r"/api/*": {"origins": allowed_origins, "allow_headers": ["Content-Type", "Authorization"]}})
+    # Configure CORS - More permissive for local development
+    if os.environ.get("FLASK_ENV") != "production":
+        CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+    else:
+        allowed_origins = [os.environ.get("FRONTEND_URL")]
+        allowed_origins = list(set(origin for origin in allowed_origins if origin))
+        CORS(app, resources={r"/api/*": {"origins": allowed_origins}}, supports_credentials=True)
     
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+
+    # Emergency Schema Check for Users table
+    # This runs once when the app is created
+    with app.app_context():
+        try:
+            from sqlalchemy import text
+            # Check if semester_id exists in users
+            db.session.execute(text("SELECT semester_id FROM users LIMIT 1"))
+        except Exception:
+            db.session.rollback()
+            try:
+                print("EMERGENCY: Adding missing semester_id to users table...")
+                db.session.execute(text("ALTER TABLE users ADD COLUMN semester_id INTEGER REFERENCES semesters(id)"))
+                db.session.commit()
+                print("SUCCESS: Database repaired.")
+            except Exception as e:
+                print(f"FAILED to repair database: {e}")
+                db.session.rollback()
 
     # Health Check and DB status
     @app.route('/api/health')

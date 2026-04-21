@@ -24,6 +24,7 @@ import eventService from '../../services/eventService';
 import { Link } from 'react-router-dom';
 import AnnouncementCard from '../../components/AnnouncementCard';
 import PremiumEventCard from '../../components/PremiumEventCard';
+import SIIALoader from '../../components/SIIALoader';
 import homeData from '../../data/homeContent.json';
 import './Home.css';
 
@@ -201,11 +202,7 @@ const Home = () => {
           </div>
 
           {loading ? (
-             <div className="section-loading-state">
-               <div className="shimmer-card-event"></div>
-               <div className="shimmer-card-event"></div>
-               <div className="shimmer-card-event"></div>
-             </div>
+             <SIIALoader status="SYNCHRONIZING ACADEMIC CALENDAR" fullScreen={false} />
           ) : error ? null : events.length > 0 ? (
             <div className="announcement-grid">
               {events.map((event, index) => (

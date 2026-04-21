@@ -8,6 +8,16 @@
   font-family: 'Inter', sans-serif;
 }
 
+.siia-logo-loader-container.section-loader {
+  height: 400px;
+  background: transparent;
+  border-radius: 32px;
+}
+
+.siia-logo-loader-container.section-loader .siia-logo-text {
+  font-size: 3rem;
+}
+
 .siia-loader-content {
   display: flex;
   flex-direction: column;

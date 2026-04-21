@@ -46,6 +46,16 @@ def create_user():
         role=data.get('role', 'student')
     )
     new_user.set_password(data.get('password'))
+
+    # Handle semester for students
+    if new_user.role == 'student':
+        from app.models.academic import Semester
+        s5_id = data.get('semester_id')
+        if not s5_id:
+            s5 = Semester.query.filter_by(name='S5').first()
+            if s5: s5_id = s5.id
+        new_user.semester_id = s5_id
+    
     db.session.add(new_user)
     db.session.commit()
     
@@ -62,6 +72,7 @@ def update_user(user_id):
     user.last_name = data.get('last_name', user.last_name)
     user.role = data.get('role', user.role)
     user.email = data.get('email', user.email)
+    user.semester_id = data.get('semester_id', user.semester_id)
     
     if data.get('password'):
         user.set_password(data.get('password'))

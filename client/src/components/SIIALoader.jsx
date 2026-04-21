@@ -2,9 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import './SIIALoader.css';
 
-const SIIALoader = ({ status = "SYNCHRONIZING DIGITAL ARCHIVES" }) => {
+const SIIALoader = ({ status = "SYNCHRONIZING DIGITAL ARCHIVES", fullScreen = true }) => {
   return (
-    <div className="siia-logo-loader-container">
+    <div className={`siia-logo-loader-container ${!fullScreen ? 'section-loader' : ''}`}>
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

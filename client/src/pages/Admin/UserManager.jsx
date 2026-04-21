@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import userService from '../../services/userService';
 import authService from '../../services/authService';
+import academicService from '../../services/academicService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, Plus, Trash2, Shield, Mail, 
   Search, Filter, MoreVertical, X, Check,
-  UserPlus, UserCheck, ShieldAlert
+  UserPlus, UserCheck, ShieldAlert, GraduationCap
 } from 'lucide-react';
 
 const UserManager = () => {
   const [users, setUsers] = useState([]);
+  const [semesters, setSemesters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
@@ -18,18 +20,22 @@ const UserManager = () => {
   
   // Form State
   const [formData, setFormData] = useState({
-    email: '', password: '', first_name: '', last_name: '', role: 'student'
+    email: '', password: '', first_name: '', last_name: '', role: 'student', semester_id: ''
   });
   const [editData, setEditData] = useState({
-    id: '', email: '', password: '', first_name: '', last_name: '', role: 'student'
+    id: '', email: '', password: '', first_name: '', last_name: '', role: 'student', semester_id: ''
   });
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => { init(); }, []);
 
-  const fetchUsers = async () => {
+  const init = async () => {
     try {
-      const data = await userService.getAll();
-      setUsers(data);
+      const [usersData, semestersData] = await Promise.all([
+        userService.getAll(),
+        academicService.getSemesters()
+      ]);
+      setUsers(usersData);
+      setSemesters(semestersData);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -63,6 +69,7 @@ const UserManager = () => {
       first_name: user.first_name,
       last_name: user.last_name,
       role: user.role,
+      semester_id: user.semester_id || '',
       password: '' // Don't pre-fill password
     });
     setShowEdit(true);
@@ -163,6 +170,11 @@ const UserManager = () => {
                 <div className="email-link">
                   <Mail size={12} /> {u.email}
                 </div>
+                {u.role === 'student' && u.semester_name && (
+                  <div className="semester-pill" style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', fontWeight: '900', color: 'var(--siia-blue)', background: 'var(--siia-blue-light)', padding: '4px 10px', borderRadius: '50px' }}>
+                    <GraduationCap size={10} /> {u.semester_name}
+                  </div>
+                )}
               </div>
 
               <div className="card-actions">
@@ -252,6 +264,15 @@ const UserManager = () => {
                     <option value="admin">Administrator</option>
                   </select>
                 </div>
+                {editData.role === 'student' && (
+                  <div className="form-group">
+                    <label>Assigned Semester</label>
+                    <select value={editData.semester_id} onChange={e => setEditData({...editData, semester_id: e.target.value})}>
+                      <option value="">Default (S5)</option>
+                      {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+                )}
                 <button type="submit" className="submit-btn" style={{ background: '#0f172a' }}>Save Identity Changes</button>
               </form>
             </motion.div>
